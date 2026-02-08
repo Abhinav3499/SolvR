@@ -50,9 +50,9 @@ If you want to start with some pre-loaded questions, you can edit `src/data/seed
 
 ## Upcoming Features
 
-- 🔌 **Chrome Extension** - Add questions directly from LeetCode or any coding platform with one click
-- 🤝 **Share with Friends** - Generate shareable links to share your question sheets with others
-- 📊 **Excel Export** - Download your progress and question list as an Excel file
+- **Chrome Extension** - Add questions directly from LeetCode or any coding platform with one click
+- **Share with Friends** - Generate shareable links to share your question sheets with others
+- **Excel Export** - Download your progress and question list as an Excel file
 
 ## Contributing
 
