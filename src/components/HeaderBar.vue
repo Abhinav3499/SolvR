@@ -26,16 +26,19 @@
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
 import { Plus, Sun, Moon } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Theme } from '../types'
 
-defineEmits(['add-topic'])
+defineEmits<{
+  (e: 'add-topic'): void
+}>()
 
 const store = useQuestionStore()
 const progress = computed(() => store.overallProgress)
-const progressPercentage = computed(() => 
+const progressPercentage = computed<number>(() => 
   progress.value.total > 0 
     ? Math.round((progress.value.solved / progress.value.total) * 100) 
     : 0
@@ -45,7 +48,7 @@ const toggleTheme = () => {
   store.toggleTheme()
 }
 
-const applyTheme = (theme) => {
+const applyTheme = (theme: Theme) => {
   document.documentElement.setAttribute('data-theme', theme)
 }
 
