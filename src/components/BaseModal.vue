@@ -22,19 +22,21 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { X } from 'lucide-vue-next'
 
-defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  confirmText: {
-    type: String,
-    default: 'Save'
+withDefaults(
+  defineProps<{
+    title: string
+    confirmText?: string
+  }>(),
+  {
+    confirmText: 'Save'
   }
-})
+)
 
-defineEmits(['close', 'confirm'])
+defineEmits<{
+  (e: 'close'): void
+  (e: 'confirm'): void
+}>()
 </script>

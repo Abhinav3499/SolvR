@@ -16,19 +16,19 @@
   </BaseModal>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Question } from '../types'
 
-const props = defineProps({
-  question: {
-    type: Object,
-    required: true
-  }
-})
+const props = defineProps<{
+  question: Question
+}>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const store = useQuestionStore()
 const notes = ref(props.question.notes || '')
