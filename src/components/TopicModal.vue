@@ -16,19 +16,19 @@
   </BaseModal>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Topic } from '../types'
 
-const props = defineProps({
-  topic: {
-    type: Object,
-    default: null
-  }
-})
+const props = defineProps<{
+  topic?: Topic | null
+}>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const store = useQuestionStore()
 const isEdit = !!props.topic
@@ -40,7 +40,7 @@ const formData = ref({
 const handleSave = () => {
   if (!formData.value.name.trim()) return
 
-  if (isEdit) {
+  if (isEdit && props.topic) {
     store.editTopic(props.topic.id, formData.value.name.trim())
   } else {
     store.addTopic(formData.value.name.trim())

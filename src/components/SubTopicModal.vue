@@ -16,23 +16,20 @@
   </BaseModal>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { useQuestionStore } from '../stores/questionStore'
+import type { SubTopic } from '../types'
 
-const props = defineProps({
-  topicId: {
-    type: String,
-    required: true
-  },
-  subTopic: {
-    type: Object,
-    default: null
-  }
-})
+const props = defineProps<{
+  topicId: string
+  subTopic?: SubTopic | null
+}>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const store = useQuestionStore()
 const isEdit = !!props.subTopic
@@ -44,7 +41,7 @@ const formData = ref({
 const handleSave = () => {
   if (!formData.value.name.trim()) return
 
-  if (isEdit) {
+  if (isEdit && props.subTopic) {
     store.editSubTopic(props.subTopic.id, formData.value.name.trim())
   } else {
     store.addSubTopic(props.topicId, formData.value.name.trim())

@@ -47,42 +47,48 @@
   </BaseModal>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import BaseModal from './BaseModal.vue'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Question, Difficulty } from '../types'
 
-const props = defineProps({
-  topicId: {
-    type: String,
-    required: true
-  },
-  subTopicId: {
-    type: String,
-    default: null
-  },
-  question: {
-    type: Object,
-    default: null
+const props = withDefaults(
+  defineProps<{
+    topicId: string
+    subTopicId?: string | null
+    question?: Question | null
+  }>(),
+  {
+    subTopicId: null,
+    question: null
   }
-})
+)
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
 
 const store = useQuestionStore()
 const isEdit = !!props.question
 
-const formData = ref({
+const formData = ref<{
+  title: string
+  link: string
+  resource: string
+  difficulty: Difficulty
+  tags: string[]
+}>({
   title: props.question?.title || '',
   link: props.question?.link || '',
   resource: props.question?.resource || '',
   difficulty: props.question?.difficulty || 'Medium',
-  tags: props.question?.tags || []
+  tags: props.question?.tags ? [...props.question.tags] : []
 })
 
 const tagsString = computed({
   get: () => formData.value.tags.join(', '),
-  set: (val) => {
+  set: (val: string) => {
     formData.value.tags = val.split(',').map(t => t.trim()).filter(Boolean)
   }
 })
@@ -90,7 +96,7 @@ const tagsString = computed({
 const handleSave = () => {
   if (!formData.value.title.trim()) return
 
-  if (isEdit) {
+  if (isEdit && props.question) {
     store.editQuestion(props.question.id, {
       title: formData.value.title.trim(),
       link: formData.value.link.trim(),
