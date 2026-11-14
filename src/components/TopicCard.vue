@@ -62,7 +62,7 @@
             <!-- Questions in SubTopic -->
             <draggable
               :model-value="getSubTopicQuestions(subTopic.id)"
-              @update:model-value="(val) => reorderSubTopicQuestions(subTopic.id, val)"
+              @update:model-value="(val: Question[]) => reorderSubTopicQuestions(subTopic.id, val)"
               item-key="id"
               handle=".question-drag-handle"
               :animation="200"
@@ -109,64 +109,74 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ChevronRight, GripVertical, Pencil, Trash2, Plus, FileQuestion, FolderPlus, FolderOpen } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import QuestionRow from './QuestionRow.vue'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Topic, SubTopic, Question } from '../types'
 
-const props = defineProps({
-  topic: {
-    type: Object,
-    required: true
-  },
-  filteredQuestionIds: {
-    type: Set,
-    default: null
+const props = withDefaults(
+  defineProps<{
+    topic: Topic
+    filteredQuestionIds?: Set<string> | null
+  }>(),
+  {
+    filteredQuestionIds: null
   }
-})
+)
 
-defineEmits(['edit', 'delete', 'add-question', 'add-subtopic', 'edit-subtopic', 'delete-subtopic', 'open-notes', 'edit-question', 'delete-question'])
+defineEmits<{
+  (e: 'edit', topic: Topic): void
+  (e: 'delete', topic: Topic): void
+  (e: 'add-question', topic: Topic, subTopic: SubTopic | null): void
+  (e: 'add-subtopic', topic: Topic): void
+  (e: 'edit-subtopic', subTopic: SubTopic): void
+  (e: 'delete-subtopic', subTopic: SubTopic): void
+  (e: 'open-notes', question: Question): void
+  (e: 'edit-question', question: Question): void
+  (e: 'delete-question', question: Question): void
+}>()
 
 const store = useQuestionStore()
 const isExpanded = ref(true)
 
 const progress = computed(() => store.getTopicProgress(props.topic.id))
-const progressPercentage = computed(() => 
+const progressPercentage = computed<number>(() => 
   progress.value.total > 0 
     ? Math.round((progress.value.solved / progress.value.total) * 100) 
     : 0
 )
 
-const sortedSubTopics = computed({
+const sortedSubTopics = computed<SubTopic[]>({
   get: () => store.getSubTopicsByTopic(props.topic.id),
-  set: (val) => {
+  set: (val: SubTopic[]) => {
     store.reorderSubTopics(props.topic.id, val.map(st => st.id))
   }
 })
 
-const getSubTopicQuestions = (subTopicId) => {
+const getSubTopicQuestions = (subTopicId: string): Question[] => {
   let questions = store.getQuestionsByTopic(props.topic.id, subTopicId)
   if (props.filteredQuestionIds) {
-    questions = questions.filter(q => props.filteredQuestionIds.has(q.id))
+    questions = questions.filter(q => props.filteredQuestionIds!.has(q.id))
   }
   return questions
 }
 
-const reorderSubTopicQuestions = (subTopicId, newOrder) => {
+const reorderSubTopicQuestions = (subTopicId: string, newOrder: Question[]) => {
   store.reorderQuestions(props.topic.id, subTopicId, newOrder.map(q => q.id))
 }
 
-const topLevelQuestions = computed({
+const topLevelQuestions = computed<Question[]>({
   get: () => {
     let questions = store.getQuestionsByTopic(props.topic.id, null)
     if (props.filteredQuestionIds) {
-      questions = questions.filter(q => props.filteredQuestionIds.has(q.id))
+      questions = questions.filter(q => props.filteredQuestionIds!.has(q.id))
     }
     return questions
   },
-  set: (val) => {
+  set: (val: Question[]) => {
     store.reorderQuestions(props.topic.id, null, val.map(q => q.id))
   }
 })

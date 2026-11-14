@@ -100,18 +100,20 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Check, Star, RotateCcw, FileText, Youtube, GripVertical, Pencil, Trash2 } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
+import type { Question } from '../types'
 
-defineProps({
-  question: {
-    type: Object,
-    required: true
-  }
-})
+defineProps<{
+  question: Question
+}>()
 
-defineEmits(['open-notes', 'edit', 'delete'])
+defineEmits<{
+  (e: 'open-notes', question: Question): void
+  (e: 'edit', question: Question): void
+  (e: 'delete', question: Question): void
+}>()
 
 const store = useQuestionStore()
 </script>
