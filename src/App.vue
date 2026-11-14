@@ -77,11 +77,12 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import { BookOpen } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { useQuestionStore } from './stores/questionStore'
+import type { Topic, SubTopic, Question } from './types'
 
 import HeaderBar from './components/HeaderBar.vue'
 import SearchFilter from './components/SearchFilter.vue'
@@ -92,26 +93,32 @@ import QuestionModal from './components/QuestionModal.vue'
 import NotesModal from './components/NotesModal.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 
+interface DeleteTarget {
+  type: 'topic' | 'subtopic' | 'question'
+  id: string
+  name: string
+}
+
 const store = useQuestionStore()
 
 const showTopicModal = ref(false)
-const editingTopic = ref(null)
+const editingTopic = ref<Topic | null>(null)
 
 const showSubTopicModal = ref(false)
 const subTopicParentId = ref('')
-const editingSubTopic = ref(null)
+const editingSubTopic = ref<SubTopic | null>(null)
 
 const showQuestionModal = ref(false)
 const questionTopicId = ref('')
-const questionSubTopicId = ref(null)
-const editingQuestion = ref(null)
+const questionSubTopicId = ref<string | null>(null)
+const editingQuestion = ref<Question | null>(null)
 
 // Notes Modal State
-const notesQuestion = ref(null)
+const notesQuestion = ref<Question | null>(null)
 
-const deleteTarget = ref(null)
+const deleteTarget = ref<DeleteTarget | null>(null)
 
-const filteredQuestionIds = computed(() => {
+const filteredQuestionIds = computed<Set<string> | null>(() => {
   const filtered = store.filteredQuestions
   if (!store.searchQuery && !store.filterDifficulty && !store.filterStatus) {
     return null
@@ -119,14 +126,14 @@ const filteredQuestionIds = computed(() => {
   return new Set(filtered.map(q => q.id))
 })
 
-const sortedTopics = computed({
+const sortedTopics = computed<Topic[]>({
   get: () => store.sortedTopics,
-  set: (val) => {
+  set: (val: Topic[]) => {
     store.reorderTopics(val.map(t => t.id))
   }
 })
 
-const openEditTopic = (topic) => {
+const openEditTopic = (topic: Topic) => {
   editingTopic.value = topic
   showTopicModal.value = true
 }
@@ -136,17 +143,17 @@ const closeTopicModal = () => {
   editingTopic.value = null
 }
 
-const openDeleteTopic = (topic) => {
+const openDeleteTopic = (topic: Topic) => {
   deleteTarget.value = { type: 'topic', id: topic.id, name: topic.name }
 }
 
-const openAddSubTopic = (topic) => {
+const openAddSubTopic = (topic: Topic) => {
   subTopicParentId.value = topic.id
   editingSubTopic.value = null
   showSubTopicModal.value = true
 }
 
-const openEditSubTopic = (subTopic) => {
+const openEditSubTopic = (subTopic: SubTopic) => {
   subTopicParentId.value = subTopic.topicId
   editingSubTopic.value = subTopic
   showSubTopicModal.value = true
@@ -158,18 +165,18 @@ const closeSubTopicModal = () => {
   subTopicParentId.value = ''
 }
 
-const openDeleteSubTopic = (subTopic) => {
+const openDeleteSubTopic = (subTopic: SubTopic) => {
   deleteTarget.value = { type: 'subtopic', id: subTopic.id, name: subTopic.name }
 }
 
-const openAddQuestion = (topic, subTopic) => {
+const openAddQuestion = (topic: Topic, subTopic: SubTopic | null) => {
   questionTopicId.value = topic.id
   questionSubTopicId.value = subTopic?.id || null
   editingQuestion.value = null
   showQuestionModal.value = true
 }
 
-const openEditQuestion = (question) => {
+const openEditQuestion = (question: Question) => {
   questionTopicId.value = question.topicId
   questionSubTopicId.value = question.subTopicId
   editingQuestion.value = question
@@ -183,11 +190,11 @@ const closeQuestionModal = () => {
   questionSubTopicId.value = null
 }
 
-const openDeleteQuestion = (question) => {
+const openDeleteQuestion = (question: Question) => {
   deleteTarget.value = { type: 'question', id: question.id, name: question.title }
 }
 
-const openNotes = (question) => {
+const openNotes = (question: Question) => {
   notesQuestion.value = question
 }
 
@@ -202,6 +209,7 @@ const getDeleteMessage = () => {
 }
 
 const confirmDelete = () => {
+  if (!deleteTarget.value) return
   if (deleteTarget.value.type === 'topic') {
     store.deleteTopic(deleteTarget.value.id)
   } else if (deleteTarget.value.type === 'subtopic') {
