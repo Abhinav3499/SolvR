@@ -1,36 +1,47 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
 import { seedData } from '../data/seedData'
+import type {
+    Topic,
+    SubTopic,
+    Question,
+    QuestionInput,
+    QuestionUpdate,
+    FilterDifficulty,
+    FilterStatus,
+    Theme,
+    Progress
+} from '../types'
 
 export const useQuestionStore = defineStore('questions', {
     state: () => ({
-        topics: useLocalStorage('qs-topics', seedData.topics),
-        subTopics: useLocalStorage('qs-subtopics', seedData.subTopics),
-        questions: useLocalStorage('qs-questions', seedData.questions),
-        theme: useLocalStorage('qs-theme', 'dark'),
-        searchQuery: '',
-        filterDifficulty: '',
-        filterStatus: ''
+        topics: useLocalStorage<Topic[]>('qs-topics', seedData.topics),
+        subTopics: useLocalStorage<SubTopic[]>('qs-subtopics', seedData.subTopics),
+        questions: useLocalStorage<Question[]>('qs-questions', seedData.questions),
+        theme: useLocalStorage<Theme>('qs-theme', 'dark'),
+        searchQuery: '' as string,
+        filterDifficulty: '' as FilterDifficulty,
+        filterStatus: '' as FilterStatus
     }),
 
     getters: {
-        sortedTopics: (state) => {
+        sortedTopics: (state): Topic[] => {
             return [...state.topics].sort((a, b) => a.order - b.order)
         },
 
-        getSubTopicsByTopic: (state) => (topicId) => {
+        getSubTopicsByTopic: (state) => (topicId: string): SubTopic[] => {
             return state.subTopics
                 .filter(st => st.topicId === topicId)
                 .sort((a, b) => a.order - b.order)
         },
 
-        getQuestionsByTopic: (state) => (topicId, subTopicId = null) => {
+        getQuestionsByTopic: (state) => (topicId: string, subTopicId: string | null = null): Question[] => {
             return state.questions
                 .filter(q => q.topicId === topicId && q.subTopicId === subTopicId)
                 .sort((a, b) => a.order - b.order)
         },
 
-        filteredQuestions: (state) => {
+        filteredQuestions: (state): Question[] => {
             let filtered = [...state.questions]
 
             if (state.searchQuery) {
@@ -58,20 +69,20 @@ export const useQuestionStore = defineStore('questions', {
             return filtered
         },
 
-        getTopicProgress: (state) => (topicId) => {
+        getTopicProgress: (state) => (topicId: string): Progress => {
             const topicQuestions = state.questions.filter(q => q.topicId === topicId)
             const solved = topicQuestions.filter(q => q.isSolved).length
             return { solved, total: topicQuestions.length }
         },
 
-        overallProgress: (state) => {
+        overallProgress: (state): Progress => {
             const solved = state.questions.filter(q => q.isSolved).length
             return { solved, total: state.questions.length }
         }
     },
 
     actions: {
-        addTopic(name) {
+        addTopic(name: string) {
             const maxOrder = Math.max(...this.topics.map(t => t.order), -1)
             this.topics.push({
                 id: `topic-${Date.now()}`,
@@ -80,25 +91,25 @@ export const useQuestionStore = defineStore('questions', {
             })
         },
 
-        editTopic(id, name) {
+        editTopic(id: string, name: string) {
             const topic = this.topics.find(t => t.id === id)
             if (topic) topic.name = name
         },
 
-        deleteTopic(id) {
+        deleteTopic(id: string) {
             this.subTopics = this.subTopics.filter(st => st.topicId !== id)
             this.questions = this.questions.filter(q => q.topicId !== id)
             this.topics = this.topics.filter(t => t.id !== id)
         },
 
-        reorderTopics(newOrder) {
+        reorderTopics(newOrder: string[]) {
             newOrder.forEach((id, index) => {
                 const topic = this.topics.find(t => t.id === id)
                 if (topic) topic.order = index
             })
         },
 
-        addSubTopic(topicId, name) {
+        addSubTopic(topicId: string, name: string) {
             const topicSubTopics = this.subTopics.filter(st => st.topicId === topicId)
             const maxOrder = Math.max(...topicSubTopics.map(st => st.order), -1)
             this.subTopics.push({
@@ -109,24 +120,24 @@ export const useQuestionStore = defineStore('questions', {
             })
         },
 
-        editSubTopic(id, name) {
+        editSubTopic(id: string, name: string) {
             const subTopic = this.subTopics.find(st => st.id === id)
             if (subTopic) subTopic.name = name
         },
 
-        deleteSubTopic(id) {
+        deleteSubTopic(id: string) {
             this.questions = this.questions.filter(q => q.subTopicId !== id)
             this.subTopics = this.subTopics.filter(st => st.id !== id)
         },
 
-        reorderSubTopics(topicId, newOrder) {
+        reorderSubTopics(_topicId: string, newOrder: string[]) {
             newOrder.forEach((id, index) => {
                 const subTopic = this.subTopics.find(st => st.id === id)
                 if (subTopic) subTopic.order = index
             })
         },
 
-        addQuestion(topicId, subTopicId, questionData) {
+        addQuestion(topicId: string, subTopicId: string | null, questionData: QuestionInput) {
             const topicQuestions = this.questions.filter(
                 q => q.topicId === topicId && q.subTopicId === subTopicId
             )
@@ -149,53 +160,53 @@ export const useQuestionStore = defineStore('questions', {
             })
         },
 
-        editQuestion(id, updates) {
+        editQuestion(id: string, updates: QuestionUpdate) {
             const question = this.questions.find(q => q.id === id)
             if (question) {
                 Object.assign(question, updates)
             }
         },
 
-        deleteQuestion(id) {
+        deleteQuestion(id: string) {
             this.questions = this.questions.filter(q => q.id !== id)
         },
 
-        toggleSolved(id) {
+        toggleSolved(id: string) {
             const question = this.questions.find(q => q.id === id)
             if (question) question.isSolved = !question.isSolved
         },
 
-        toggleRevision(id) {
+        toggleRevision(id: string) {
             const question = this.questions.find(q => q.id === id)
             if (question) question.isRevision = !question.isRevision
         },
 
-        toggleStarred(id) {
+        toggleStarred(id: string) {
             const question = this.questions.find(q => q.id === id)
             if (question) question.isStarred = !question.isStarred
         },
 
-        updateNotes(id, notes) {
+        updateNotes(id: string, notes: string) {
             const question = this.questions.find(q => q.id === id)
             if (question) question.notes = notes
         },
 
-        reorderQuestions(topicId, subTopicId, newOrder) {
+        reorderQuestions(_topicId: string, _subTopicId: string | null, newOrder: string[]) {
             newOrder.forEach((id, index) => {
                 const question = this.questions.find(q => q.id === id)
                 if (question) question.order = index
             })
         },
 
-        setSearchQuery(query) {
+        setSearchQuery(query: string) {
             this.searchQuery = query
         },
 
-        setFilterDifficulty(difficulty) {
+        setFilterDifficulty(difficulty: FilterDifficulty) {
             this.filterDifficulty = difficulty
         },
 
-        setFilterStatus(status) {
+        setFilterStatus(status: FilterStatus) {
             this.filterStatus = status
         },
 
