@@ -385,5 +385,27 @@ describe('useQuestionStore', () => {
       expect(store.topics).toHaveLength(2)
       expect(store.topics.find(t => t.id === 't1')?.name).toBe('Updated Existing Topic')
     })
+
+    it('imports questions and topics from CSV text', () => {
+      const store = useQuestionStore()
+      store.topics = []
+      store.subTopics = []
+      store.questions = []
+
+      const csv = 'Topic,SubTopic,Title,Difficulty,Link,Resource,Tags,Solved,Starred,Revision,Notes\n' +
+        'Arrays,Sorting,Merge Intervals,Medium,https://leetcode.com,,,Yes,No,No,"Intervals approach"\n' +
+        'Arrays,Sorting,Insert Interval,Medium,https://leetcode.com,,,No,Yes,No,""'
+
+      const res = store.importCSV(csv, 'replace')
+      expect(res.success).toBe(true)
+      expect(res.count).toBe(2)
+      expect(store.topics).toHaveLength(1)
+      expect(store.topics[0].name).toBe('Arrays')
+      expect(store.subTopics).toHaveLength(1)
+      expect(store.subTopics[0].name).toBe('Sorting')
+      expect(store.questions).toHaveLength(2)
+      expect(store.questions[0].isSolved).toBe(true)
+      expect(store.questions[1].isStarred).toBe(true)
+    })
   })
 })

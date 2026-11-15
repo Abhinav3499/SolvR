@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
 import { seedData } from '../data/seedData'
+import { parseCSVToQuestions } from '../utils/csv'
 import type {
     Topic,
     SubTopic,
@@ -309,6 +310,92 @@ export const useQuestionStore = defineStore('questions', {
             }
 
             return { success: true }
+        },
+
+        importCSV(csvText: string, mode: ImportMode = 'merge'): { success: boolean; error?: string; count?: number } {
+            const { questions: parsedQuestions, error } = parseCSVToQuestions(csvText)
+            if (error || parsedQuestions.length === 0) {
+                return { success: false, error: error || 'No valid questions found in CSV file.' }
+            }
+
+            if (mode === 'replace') {
+                this.topics = []
+                this.subTopics = []
+                this.questions = []
+            }
+
+            for (const pq of parsedQuestions) {
+                let topic = this.topics.find(t => t.name.toLowerCase() === pq.topicName.toLowerCase())
+                if (!topic) {
+                    const maxOrder = Math.max(...this.topics.map(t => t.order), -1)
+                    topic = {
+                        id: `topic-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                        name: pq.topicName,
+                        order: maxOrder + 1
+                    }
+                    this.topics.push(topic)
+                }
+
+                let subTopicId: string | null = null
+                if (pq.subTopicName) {
+                    let subTopic = this.subTopics.find(
+                        st => st.topicId === topic!.id && st.name.toLowerCase() === pq.subTopicName!.toLowerCase()
+                    )
+                    if (!subTopic) {
+                        const topicSubTopics = this.subTopics.filter(st => st.topicId === topic!.id)
+                        const maxOrder = Math.max(...topicSubTopics.map(st => st.order), -1)
+                        subTopic = {
+                            id: `subtopic-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                            topicId: topic.id,
+                            name: pq.subTopicName,
+                            order: maxOrder + 1
+                        }
+                        this.subTopics.push(subTopic)
+                    }
+                    subTopicId = subTopic.id
+                }
+
+                const existingQuestion = this.questions.find(
+                    q => q.topicId === topic!.id && q.title.toLowerCase() === pq.title.toLowerCase()
+                )
+
+                if (existingQuestion) {
+                    Object.assign(existingQuestion, {
+                        subTopicId,
+                        link: pq.link || existingQuestion.link,
+                        resource: pq.resource || existingQuestion.resource,
+                        difficulty: pq.difficulty,
+                        tags: Array.from(new Set([...existingQuestion.tags, ...pq.tags])),
+                        notes: pq.notes || existingQuestion.notes,
+                        isSolved: pq.isSolved || existingQuestion.isSolved,
+                        isStarred: pq.isStarred || existingQuestion.isStarred,
+                        isRevision: pq.isRevision || existingQuestion.isRevision
+                    })
+                } else {
+                    const topicQuestions = this.questions.filter(
+                        q => q.topicId === topic!.id && q.subTopicId === subTopicId
+                    )
+                    const maxOrder = Math.max(...topicQuestions.map(q => q.order), -1)
+
+                    this.questions.push({
+                        id: `q-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                        topicId: topic.id,
+                        subTopicId,
+                        title: pq.title,
+                        link: pq.link,
+                        resource: pq.resource,
+                        difficulty: pq.difficulty,
+                        tags: pq.tags,
+                        notes: pq.notes,
+                        isSolved: pq.isSolved,
+                        isStarred: pq.isStarred,
+                        isRevision: pq.isRevision,
+                        order: maxOrder + 1
+                    })
+                }
+            }
+
+            return { success: true, count: parsedQuestions.length }
         }
     }
 })
