@@ -156,13 +156,21 @@ import { useQuestionStore } from '../stores/questionStore'
 import { parseCSVToQuestions } from '../utils/csv'
 import type { ExportPayload, ImportMode } from '../types'
 
+interface Props {
+  initialTab?: 'export' | 'import'
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  initialTab: 'import'
+})
+
 defineEmits<{
   (e: 'close'): void
 }>()
 
 const store = useQuestionStore()
 
-const activeTab = ref<'export' | 'import'>('export')
+const activeTab = ref<'export' | 'import'>(props.initialTab)
 const copied = ref(false)
 const importMode = ref<ImportMode>('merge')
 const fileInputRef = ref<HTMLInputElement | null>(null)

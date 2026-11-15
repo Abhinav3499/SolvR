@@ -3,7 +3,7 @@
     <!-- Header -->
     <HeaderBar
       @add-topic="showTopicModal = true"
-      @open-export-import="showExportImportModal = true"
+      @open-export-import="openExportImport"
     />
 
     <!-- Search & Filter -->
@@ -39,7 +39,17 @@
     <div v-if="!sortedTopics.length" class="empty-state">
       <BookOpen :size="64" />
       <h3>No topics yet</h3>
-      <p>Click "Add Topic" to get started with your question tracking</p>
+      <p>Click "Add Topic" or "Import CSV" to get started with your question tracking</p>
+      <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
+        <button class="btn btn-primary" @click="showTopicModal = true">
+          <Plus :size="16" />
+          Add Topic
+        </button>
+        <button class="btn btn-secondary" @click="openExportImport('import')">
+          <Upload :size="16" />
+          Import CSV
+        </button>
+      </div>
     </div>
 
     <!-- Modals -->
@@ -72,6 +82,7 @@
 
     <ExportImportModal
       v-if="showExportImportModal"
+      :initial-tab="exportImportTab"
       @close="showExportImportModal = false"
     />
 
@@ -87,7 +98,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { BookOpen } from 'lucide-vue-next'
+import { BookOpen, Plus, Upload } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { useQuestionStore } from './stores/questionStore'
 import type { Topic, SubTopic, Question } from './types'
@@ -111,6 +122,12 @@ interface DeleteTarget {
 const store = useQuestionStore()
 
 const showExportImportModal = ref(false)
+const exportImportTab = ref<'export' | 'import'>('import')
+
+const openExportImport = (tab: 'export' | 'import' = 'import') => {
+  exportImportTab.value = tab
+  showExportImportModal.value = true
+}
 
 const showTopicModal = ref(false)
 const editingTopic = ref<Topic | null>(null)

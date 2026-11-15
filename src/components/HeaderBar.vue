@@ -18,8 +18,13 @@
         <Sun v-if="store.theme === 'dark'" :size="20" />
         <Moon v-else :size="20" />
       </button>
-      <button class="btn btn-icon" @click="$emit('open-export-import')" title="Backup & Restore Data">
-        <ArrowUpDown :size="18" />
+      <button class="btn btn-secondary" @click="$emit('open-export-import', 'import')" title="Import Questions from CSV or JSON file">
+        <Upload :size="16" />
+        Import CSV
+      </button>
+      <button class="btn btn-secondary" @click="$emit('open-export-import', 'export')" title="Export Backup or CSV">
+        <Download :size="16" />
+        Export
       </button>
       <button class="btn btn-primary" @click="$emit('add-topic')">
         <Plus :size="18" />
@@ -31,13 +36,13 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { Plus, Sun, Moon, ArrowUpDown } from 'lucide-vue-next'
+import { Plus, Sun, Moon, Upload, Download } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import type { Theme } from '../types'
 
 defineEmits<{
   (e: 'add-topic'): void
-  (e: 'open-export-import'): void
+  (e: 'open-export-import', tab?: 'export' | 'import'): void
 }>()
 
 const store = useQuestionStore()

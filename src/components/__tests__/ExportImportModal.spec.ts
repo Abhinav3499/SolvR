@@ -10,8 +10,9 @@ describe('ExportImportModal.vue', () => {
     setActivePinia(createPinia())
   })
 
-  const mountModal = () => {
+  const mountModal = (props: { initialTab?: 'export' | 'import' } = { initialTab: 'export' }) => {
     return mount(ExportImportModal, {
+      props,
       global: {
         stubs: {
           teleport: true
@@ -48,7 +49,7 @@ describe('ExportImportModal.vue', () => {
   })
 
   it('switches between Export and Import tabs', async () => {
-    const wrapper = mountModal()
+    const wrapper = mountModal({ initialTab: 'export' })
     const tabs = wrapper.findAll('.tab-btn')
     expect(tabs).toHaveLength(2)
 
@@ -59,6 +60,11 @@ describe('ExportImportModal.vue', () => {
     // Switch to Import tab
     await tabs[1].trigger('click')
     expect(wrapper.find('.export-actions').exists()).toBe(false)
+    expect(wrapper.find('.file-dropzone').exists()).toBe(true)
+  })
+
+  it('opens in Import tab when initialTab is set to import', () => {
+    const wrapper = mountModal({ initialTab: 'import' })
     expect(wrapper.find('.file-dropzone').exists()).toBe(true)
   })
 
