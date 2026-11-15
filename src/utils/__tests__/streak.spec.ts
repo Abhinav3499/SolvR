@@ -91,7 +91,7 @@ describe('Streak & Activity Heatmap utils', () => {
     expect(streak.totalActiveDays).toBe(6)
   })
 
-  it('generates heatmap grid with appropriate intensity levels', () => {
+  it('generates heatmap grid with appropriate intensity levels and 1-year month labels', () => {
     const today = new Date(2026, 10, 15)
     const log = {
       '2026-11-15': ['q1', 'q2', 'q3', 'q4', 'q5'], // level 3
@@ -101,6 +101,8 @@ describe('Streak & Activity Heatmap utils', () => {
 
     const grid = generateHeatmapDays(log, 4, today)
     expect(grid.days).toHaveLength(28) // 4 weeks * 7 days
+    expect(grid.totalSolvedPastYear).toBe(8)
+    expect(grid.monthLabels.length).toBeGreaterThan(0)
 
     const todayDay = grid.days.find(d => d.date === '2026-11-15')
     expect(todayDay).toBeDefined()

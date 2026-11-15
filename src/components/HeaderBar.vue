@@ -48,14 +48,9 @@
         <span class="btn-text">{{ authStore.isLoggedIn ? userName : 'Cloud Sync' }}</span>
       </button>
 
-      <button class="btn btn-secondary" @click="$emit('open-export-import', 'import')" title="Import Questions from CSV or JSON file">
-        <Upload :size="16" />
-        <span class="btn-text">Import</span>
-      </button>
-
-      <button class="btn btn-secondary" @click="$emit('open-export-import', 'export')" title="Export Backup or CSV">
-        <Download :size="16" />
-        <span class="btn-text">Export</span>
+      <button class="btn btn-secondary quick-add-btn" @click="$emit('open-quick-add')" title="Add problem from LeetCode, Codeforces, or Browser">
+        <Code2 :size="16" />
+        <span class="btn-text">Add from LeetCode/CF</span>
       </button>
 
       <button class="btn btn-primary" @click="$emit('add-topic')">
@@ -68,16 +63,16 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { Plus, Sun, Moon, Upload, Download, Flame, Users, Cloud } from 'lucide-vue-next'
+import { Plus, Sun, Moon, Flame, Users, Cloud, Code2 } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import { useAuthStore } from '../stores/authStore'
 import type { Theme } from '../types'
 
 defineEmits<{
   (e: 'add-topic'): void
-  (e: 'open-export-import', tab?: 'export' | 'import'): void
   (e: 'open-auth'): void
   (e: 'open-social'): void
+  (e: 'open-quick-add'): void
 }>()
 
 const store = useQuestionStore()
@@ -186,6 +181,17 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.quick-add-btn {
+  background: rgba(6, 182, 212, 0.12);
+  border-color: rgba(6, 182, 212, 0.3);
+  color: var(--accent-cyan);
+}
+
+.quick-add-btn:hover {
+  background: rgba(6, 182, 212, 0.22);
+  border-color: var(--accent-cyan);
 }
 
 @media (max-width: 768px) {

@@ -109,13 +109,15 @@ export const useQuestionStore = defineStore('questions', {
     },
 
     actions: {
-        addTopic(name: string) {
+        addTopic(name: string): Topic {
             const maxOrder = Math.max(...this.topics.map(t => t.order), -1)
-            this.topics.push({
+            const newTopic: Topic = {
                 id: `topic-${Date.now()}`,
                 name,
                 order: maxOrder + 1
-            })
+            }
+            this.topics.push(newTopic)
+            return newTopic
         },
 
         editTopic(id: string, name: string) {
@@ -179,7 +181,7 @@ export const useQuestionStore = defineStore('questions', {
                 resource: questionData.resource || '',
                 difficulty: questionData.difficulty || 'Medium',
                 tags: questionData.tags || [],
-                notes: '',
+                notes: questionData.notes || '',
                 isSolved: false,
                 isRevision: false,
                 isStarred: false,

@@ -109,18 +109,27 @@ export function calculateStreak(
   }
 }
 
+export interface MonthLabel {
+  label: string
+  weekIndex: number
+}
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 /**
- * Generate a 2D or flat array of days for the activity heatmap (e.g., last 26 weeks)
+ * Generate 1-year (53 weeks) heatmap grid with month-wise labels like LeetCode
  */
 export function generateHeatmapDays(
   activityLog: ActivityLog = {},
-  weeks = 26,
+  weeks = 53,
   referenceDate: Date = new Date()
 ): {
   days: HeatmapDay[]
   totalWeeks: number
   startDate: string
   endDate: string
+  monthLabels: MonthLabel[]
+  totalSolvedPastYear: number
 } {
   const endDate = new Date(referenceDate)
   endDate.setHours(0, 0, 0, 0)
@@ -136,10 +145,12 @@ export function generateHeatmapDays(
 
   const days: HeatmapDay[] = []
   const cursor = new Date(gridStart)
+  let totalSolvedPastYear = 0
 
   for (let i = 0; i < totalDays; i++) {
     const dateKey = formatDateKey(cursor)
     const count = activityLog[dateKey]?.length || 0
+    totalSolvedPastYear += count
     const dayOfWeek = cursor.getDay()
     const weekIndex = Math.floor(i / 7)
 
@@ -160,10 +171,33 @@ export function generateHeatmapDays(
     cursor.setDate(cursor.getDate() + 1)
   }
 
+  // Calculate Month Labels for the 53 week columns
+  const monthLabels: MonthLabel[] = []
+  let lastMonth = -1
+  let lastPlacedWeek = -5
+
+  for (let w = 0; w < weeks; w++) {
+    // Check day in middle of week (Wednesday = day 3) or day 0
+    const sampleDay = days.find(d => d.weekIndex === w && d.dayOfWeek === 3) || days.find(d => d.weekIndex === w)
+    if (sampleDay) {
+      const monthIndex = parseDateKey(sampleDay.date).getMonth()
+      if (monthIndex !== lastMonth && (w - lastPlacedWeek >= 3 || lastMonth === -1)) {
+        monthLabels.push({
+          label: MONTH_NAMES[monthIndex],
+          weekIndex: w
+        })
+        lastMonth = monthIndex
+        lastPlacedWeek = w
+      }
+    }
+  }
+
   return {
     days,
     totalWeeks: weeks,
     startDate: formatDateKey(gridStart),
-    endDate: formatDateKey(gridEnd)
+    endDate: formatDateKey(gridEnd),
+    monthLabels,
+    totalSolvedPastYear
   }
 }

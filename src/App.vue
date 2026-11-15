@@ -3,12 +3,12 @@
     <!-- Header -->
     <HeaderBar
       @add-topic="showTopicModal = true"
-      @open-export-import="openExportImport"
       @open-auth="showAuthModal = true"
       @open-social="showSocialModal = true"
+      @open-quick-add="showQuickProblemModal = true"
     />
 
-    <!-- Streak & Activity Heatmap -->
+    <!-- LeetCode 1-Year Streak & Activity Heatmap -->
     <ActivityHeatmap
       @filter-due="handleFilterDueReview"
     />
@@ -46,15 +46,15 @@
     <div v-if="!sortedTopics.length" class="empty-state">
       <BookOpen :size="64" />
       <h3>No topics yet</h3>
-      <p>Click "Add Topic" or "Import CSV" to get started with your question tracking</p>
+      <p>Click "Add Topic" or "Add from LeetCode / CF" to get started with your question tracking</p>
       <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: center;">
         <button class="btn btn-primary" @click="showTopicModal = true">
           <Plus :size="16" />
           Add Topic
         </button>
-        <button class="btn btn-secondary" @click="openExportImport('import')">
-          <Upload :size="16" />
-          Import CSV
+        <button class="btn btn-secondary" @click="showQuickProblemModal = true">
+          <Code2 :size="16" />
+          Add from LeetCode / CF
         </button>
       </div>
     </div>
@@ -87,10 +87,13 @@
       @close="notesQuestion = null"
     />
 
-    <ExportImportModal
-      v-if="showExportImportModal"
-      :initial-tab="exportImportTab"
-      @close="showExportImportModal = false"
+    <QuickProblemModal
+      v-if="showQuickProblemModal"
+      :initial-url="quickProblemData.url"
+      :initial-title="quickProblemData.title"
+      :initial-difficulty="quickProblemData.difficulty"
+      :initial-platform="quickProblemData.platform"
+      @close="showQuickProblemModal = false"
     />
 
     <ConfirmModal 
@@ -114,8 +117,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { BookOpen, Plus, Upload } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { BookOpen, Plus, Code2 } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 import { useQuestionStore } from './stores/questionStore'
 import type { Topic, SubTopic, Question } from './types'
@@ -128,10 +131,10 @@ import SubTopicModal from './components/SubTopicModal.vue'
 import QuestionModal from './components/QuestionModal.vue'
 import NotesModal from './components/NotesModal.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
-import ExportImportModal from './components/ExportImportModal.vue'
 import ActivityHeatmap from './components/ActivityHeatmap.vue'
 import AuthModal from './components/AuthModal.vue'
 import SocialModal from './components/SocialModal.vue'
+import QuickProblemModal from './components/QuickProblemModal.vue'
 
 interface DeleteTarget {
   type: 'topic' | 'subtopic' | 'question'
@@ -145,16 +148,15 @@ const handleFilterDueReview = () => {
   store.setFilterStatus('due')
 }
 
-const showExportImportModal = ref(false)
-const exportImportTab = ref<'export' | 'import'>('import')
-
 const showAuthModal = ref(false)
 const showSocialModal = ref(false)
-
-const openExportImport = (tab: 'export' | 'import' = 'import') => {
-  exportImportTab.value = tab
-  showExportImportModal.value = true
-}
+const showQuickProblemModal = ref(false)
+const quickProblemData = ref<{
+  url?: string
+  title?: string
+  difficulty?: string
+  platform?: string
+}>({})
 
 const showTopicModal = ref(false)
 const editingTopic = ref<Topic | null>(null)
@@ -274,4 +276,21 @@ const confirmDelete = () => {
   }
   deleteTarget.value = null
 }
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('quickAdd') === '1') {
+      quickProblemData.value = {
+        title: params.get('title') || '',
+        url: params.get('link') || '',
+        difficulty: params.get('difficulty') || 'Medium',
+        platform: params.get('platform') || 'LeetCode'
+      }
+      showQuickProblemModal.value = true
+      const cleanUrl = window.location.origin + window.location.pathname
+      window.history.replaceState({}, document.title, cleanUrl)
+    }
+  }
+})
 </script>

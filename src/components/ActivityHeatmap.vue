@@ -1,49 +1,35 @@
 <template>
   <div class="heatmap-card glass-card">
-    <!-- Top Stats Row -->
+    <!-- LeetCode Style Top Stats Bar -->
     <div class="heatmap-header" @click="isExpanded = !isExpanded">
-      <div class="heatmap-title-group">
-        <Flame :size="20" class="flame-icon" :class="{ active: streakInfo.currentStreak > 0 }" />
-        <h3>Daily Consistency & Heatmap</h3>
-        <span class="streak-badge">
-          {{ streakInfo.currentStreak }} Day Streak
-        </span>
+      <div class="header-left-summary">
+        <div class="flame-badge" :class="{ active: streakInfo.currentStreak > 0 }">
+          <Flame :size="18" />
+        </div>
+        <div class="summary-text-group">
+          <div class="main-stat-line">
+            <span class="submissions-count">{{ totalSolvedPastYear }}</span>
+            <span class="submissions-label">submissions in the past one year</span>
+          </div>
+          <div class="streak-sub-strip">
+            <span class="sub-stat">Total active days: <strong>{{ streakInfo.totalActiveDays }}d</strong></span>
+            <span class="sub-dot">•</span>
+            <span class="sub-stat">Max streak: <strong>{{ streakInfo.longestStreak }}d</strong></span>
+            <span class="sub-dot">•</span>
+            <span class="sub-stat highlight">Current streak: <strong>{{ streakInfo.currentStreak }}d</strong></span>
+          </div>
+        </div>
       </div>
 
-      <div class="stats-pills" @click.stop>
-        <div class="stat-pill" title="Current consecutive days">
-          <Flame :size="15" class="icon-orange" />
-          <span class="stat-num">{{ streakInfo.currentStreak }}</span>
-          <span class="stat-txt">Streak</span>
-        </div>
-
-        <div class="stat-pill" title="Longest streak ever">
-          <Trophy :size="15" class="icon-yellow" />
-          <span class="stat-num">{{ streakInfo.longestStreak }}</span>
-          <span class="stat-txt">Best</span>
-        </div>
-
-        <div class="stat-pill" title="Total active days">
-          <Calendar :size="15" class="icon-blue" />
-          <span class="stat-num">{{ streakInfo.totalActiveDays }}</span>
-          <span class="stat-txt">Days</span>
-        </div>
-
-        <div class="stat-pill" title="Problems solved today">
-          <Zap :size="15" class="icon-green" />
-          <span class="stat-num">{{ streakInfo.todaySolvedCount }}</span>
-          <span class="stat-txt">Today</span>
-        </div>
-
+      <div class="header-right-actions" @click.stop>
         <div 
           v-if="dueQuestions.length > 0" 
-          class="stat-pill due-pill" 
-          title="Questions starred or marked for revision that haven't been practiced in 7+ days"
+          class="due-radar-pill" 
+          title="Questions starred or revision due after 7+ days"
           @click="$emit('filter-due')"
         >
-          <Clock :size="15" class="icon-rose" />
-          <span class="stat-num">{{ dueQuestions.length }}</span>
-          <span class="stat-txt">Due Review</span>
+          <Clock :size="14" class="icon-rose" />
+          <span><strong>{{ dueQuestions.length }}</strong> 7d+ Due</span>
         </div>
 
         <button 
@@ -56,52 +42,70 @@
       </div>
     </div>
 
-    <!-- Collapsible Heatmap Grid -->
+    <!-- LeetCode 1-Year Month-Wise Grid -->
     <div v-if="isExpanded" class="heatmap-body">
       <div class="grid-scroll-container">
-        <div class="heatmap-matrix">
-          <!-- Week Days Labels Column -->
-          <div class="day-labels">
-            <span class="day-label">Sun</span>
-            <span class="day-label">Mon</span>
-            <span class="day-label">Tue</span>
-            <span class="day-label">Wed</span>
-            <span class="day-label">Thu</span>
-            <span class="day-label">Fri</span>
-            <span class="day-label">Sat</span>
+        <div class="leetcode-heatmap-wrapper">
+          <!-- Month Labels Header Row -->
+          <div class="months-row">
+            <div class="day-label-placeholder"></div>
+            <div class="months-track">
+              <span
+                v-for="(m, idx) in monthLabels"
+                :key="idx"
+                class="month-label"
+                :style="{ left: `${(m.weekIndex / totalWeeks) * 100}%` }"
+              >
+                {{ m.label }}
+              </span>
+            </div>
           </div>
 
-          <!-- Weeks Columns -->
-          <div class="weeks-container">
-            <div 
-              v-for="weekIdx in totalWeeks" 
-              :key="weekIdx" 
-              class="week-column"
-            >
-              <div
-                v-for="day in getWeekDays(weekIdx - 1)"
-                :key="day.date"
-                class="heatmap-cell"
-                :class="'level-' + day.level"
-                :title="formatTooltip(day)"
-              ></div>
+          <!-- Heatmap Matrix: Day Labels + Week Columns -->
+          <div class="heatmap-matrix">
+            <!-- Day of Week Labels (Mon, Wed, Fri like LeetCode) -->
+            <div class="day-labels-col">
+              <span class="day-name empty-slot"></span>
+              <span class="day-name">Mon</span>
+              <span class="day-name empty-slot"></span>
+              <span class="day-name">Wed</span>
+              <span class="day-name empty-slot"></span>
+              <span class="day-name">Fri</span>
+              <span class="day-name empty-slot"></span>
+            </div>
+
+            <!-- 53 Week Columns -->
+            <div class="weeks-grid">
+              <div 
+                v-for="weekIdx in totalWeeks" 
+                :key="weekIdx" 
+                class="week-column"
+              >
+                <div
+                  v-for="day in getWeekDays(weekIdx - 1)"
+                  :key="day.date"
+                  class="heatmap-cell"
+                  :class="'level-' + day.level"
+                  :title="formatTooltip(day)"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Legend and Range Footer -->
+      <!-- LeetCode Style Footer Legend -->
       <div class="heatmap-footer">
         <span class="range-info">
-          Activity over the past 26 weeks (6 months)
+          1 year submission activity (53 weeks)
         </span>
         <div class="legend">
           <span class="legend-label">Less</span>
-          <div class="heatmap-cell level-0" title="0 solved"></div>
-          <div class="heatmap-cell level-1" title="1 solved"></div>
-          <div class="heatmap-cell level-2" title="2-3 solved"></div>
-          <div class="heatmap-cell level-3" title="4-6 solved"></div>
-          <div class="heatmap-cell level-4" title="7+ solved"></div>
+          <div class="heatmap-cell level-0" title="0 submissions"></div>
+          <div class="heatmap-cell level-1" title="1 submission"></div>
+          <div class="heatmap-cell level-2" title="2-3 submissions"></div>
+          <div class="heatmap-cell level-3" title="4-6 submissions"></div>
+          <div class="heatmap-cell level-4" title="7+ submissions"></div>
           <span class="legend-label">More</span>
         </div>
       </div>
@@ -111,9 +115,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Flame, Trophy, Calendar, Zap, Clock, ChevronDown } from 'lucide-vue-next'
+import { Flame, Clock, ChevronDown } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
-import { generateHeatmapDays } from '../utils/streak'
+import { generateHeatmapDays, parseDateKey } from '../utils/streak'
 import type { HeatmapDay } from '../types'
 
 defineEmits<{
@@ -126,22 +130,32 @@ const isExpanded = ref(true)
 const streakInfo = computed(() => store.streakInfo)
 const dueQuestions = computed(() => store.getDueForReviewQuestions)
 
+// 1 full year: 53 weeks (~371 days)
 const heatmapData = computed(() => {
-  return generateHeatmapDays(store.activityLog, 26)
+  return generateHeatmapDays(store.activityLog, 53)
 })
 
 const totalWeeks = computed(() => heatmapData.value.totalWeeks)
+const monthLabels = computed(() => heatmapData.value.monthLabels)
+const totalSolvedPastYear = computed(() => heatmapData.value.totalSolvedPastYear)
 
 const getWeekDays = (weekIndex: number): HeatmapDay[] => {
   return heatmapData.value.days.filter(d => d.weekIndex === weekIndex)
 }
 
 const formatTooltip = (day: HeatmapDay): string => {
+  const dateObj = parseDateKey(day.date)
+  const formattedDate = dateObj.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
+
   if (day.count === 0) {
-    return `No problems solved on ${day.date}`
+    return `No submissions on ${formattedDate}`
   }
-  const countText = day.count === 1 ? '1 problem' : `${day.count} problems`
-  return `${countText} solved on ${day.date}`
+  const submissionWord = day.count === 1 ? 'submission' : 'submissions'
+  return `${day.count} ${submissionWord} on ${formattedDate}`
 }
 </script>
 
@@ -150,7 +164,7 @@ const formatTooltip = (day: HeatmapDay): string => {
   background: var(--glass-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: 18px;
+  border-radius: 16px;
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   margin-bottom: 24px;
@@ -177,222 +191,304 @@ const formatTooltip = (day: HeatmapDay): string => {
   cursor: pointer;
   user-select: none;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
 }
 
-.heatmap-title-group {
+.header-left-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.flame-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.flame-badge.active {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: var(--accent-orange);
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.25);
+}
+
+.summary-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.main-stat-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.submissions-count {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.submissions-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.streak-sub-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.sub-dot {
+  opacity: 0.4;
+}
+
+.sub-stat strong {
+  color: var(--text-primary);
+}
+
+.sub-stat.highlight strong {
+  color: var(--accent-orange);
+}
+
+.header-right-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.heatmap-title-group h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-
-.flame-icon {
-  color: var(--text-muted);
-  transition: all 0.3s ease;
-}
-
-.flame-icon.active {
-  color: var(--accent-orange);
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.6));
-  animation: pulseFlame 2s infinite ease-in-out;
-}
-
-@keyframes pulseFlame {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.12);
-  }
-}
-
-.streak-badge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: var(--accent-orange);
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  letter-spacing: 0.02em;
-}
-
-.stats-pills {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.stat-pill {
-  display: flex;
+.due-radar-pill {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border);
-  border-radius: 9999px;
   padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: #fb7185;
   font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.stat-pill:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: var(--glass-border-light);
-}
-
-.stat-num {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.stat-txt {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.due-pill {
-  cursor: pointer;
-  background: rgba(244, 63, 94, 0.1);
-  border-color: rgba(244, 63, 94, 0.3);
-}
-
-.due-pill:hover {
-  background: rgba(244, 63, 94, 0.2);
+.due-radar-pill:hover {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.5);
   transform: translateY(-1px);
 }
 
-.icon-orange { color: #f59e0b; }
-.icon-yellow { color: #fbbf24; }
-.icon-blue { color: #38bdf8; }
-.icon-green { color: #10b981; }
-.icon-rose { color: #f43f5e; }
-
 .collapse-btn {
-  padding: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 
 .chevron-icon {
   transition: transform 0.25s ease;
-  color: var(--text-secondary);
 }
 
 .chevron-icon.collapsed {
   transform: rotate(-90deg);
 }
 
+/* LeetCode Grid Container */
 .heatmap-body {
-  padding: 6px 22px 20px 22px;
+  padding: 8px 22px 18px;
   border-top: 1px solid var(--glass-border);
 }
 
 .grid-scroll-container {
   overflow-x: auto;
-  padding: 14px 0 10px 0;
-  scrollbar-width: thin;
+  padding-bottom: 6px;
 }
 
+.grid-scroll-container::-webkit-scrollbar {
+  height: 5px;
+}
+
+.grid-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.leetcode-heatmap-wrapper {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 720px;
+  width: 100%;
+}
+
+/* Month Labels Row */
+.months-row {
+  display: flex;
+  margin-bottom: 6px;
+  height: 18px;
+  position: relative;
+}
+
+.day-label-placeholder {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.months-track {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+.month-label {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  user-select: none;
+  transform: translateX(-2px);
+}
+
+/* Heatmap Matrix */
 .heatmap-matrix {
   display: flex;
-  gap: 8px;
-  min-width: 680px;
+  gap: 6px;
 }
 
-.day-labels {
+.day-labels-col {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding-right: 6px;
+  gap: 3px;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.day-name {
+  height: 12px;
+  line-height: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
   user-select: none;
 }
 
-.day-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  height: 12px;
-  line-height: 12px;
+.day-name.empty-slot {
+  visibility: hidden;
 }
 
-.day-label:nth-child(even) {
-  opacity: 0.35;
-}
-
-.weeks-container {
+.weeks-grid {
   display: flex;
-  gap: 4px;
+  gap: 3px;
+  flex: 1;
 }
 
 .week-column {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  flex: 1;
 }
 
 .heatmap-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 10px;
+  min-height: 10px;
+  max-width: 13px;
+  max-height: 13px;
+  border-radius: 2.5px;
+  transition: transform 0.12s ease, filter 0.15s ease;
   cursor: pointer;
 }
 
 .heatmap-cell:hover {
   transform: scale(1.35);
   z-index: 10;
-  border-color: rgba(255, 255, 255, 0.4);
+  filter: brightness(1.2);
 }
 
-.level-0 {
-  background: rgba(255, 255, 255, 0.04);
+/* LeetCode Colors */
+.heatmap-cell.level-0 {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-[data-theme="light"] .level-0 {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.06);
+[data-theme="light"] .heatmap-cell.level-0 {
+  background: #ebedf0;
+  border-color: rgba(0, 0, 0, 0.04);
 }
 
-.level-1 {
-  background: rgba(16, 185, 129, 0.35);
-  border-color: rgba(16, 185, 129, 0.45);
+.heatmap-cell.level-1 {
+  background: #0e4429;
+  box-shadow: 0 0 4px rgba(14, 68, 41, 0.4);
 }
 
-.level-2 {
-  background: rgba(16, 185, 129, 0.65);
-  border-color: rgba(16, 185, 129, 0.75);
+[data-theme="light"] .heatmap-cell.level-1 {
+  background: #9be9a8;
 }
 
-.level-3 {
-  background: #10b981;
-  border-color: #34d399;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+.heatmap-cell.level-2 {
+  background: #006d32;
+  box-shadow: 0 0 5px rgba(0, 109, 50, 0.5);
 }
 
-.level-4 {
-  background: #34d399;
-  border-color: #6ee7b7;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+[data-theme="light"] .heatmap-cell.level-2 {
+  background: #40c463;
 }
 
+.heatmap-cell.level-3 {
+  background: #26a641;
+  box-shadow: 0 0 6px rgba(38, 166, 65, 0.6);
+}
+
+[data-theme="light"] .heatmap-cell.level-3 {
+  background: #30a14e;
+}
+
+.heatmap-cell.level-4 {
+  background: #39d353;
+  box-shadow: 0 0 8px rgba(57, 211, 83, 0.8);
+}
+
+[data-theme="light"] .heatmap-cell.level-4 {
+  background: #216e39;
+}
+
+/* Footer & Legend */
 .heatmap-footer {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-top: 14px;
-  font-size: 0.78rem;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .legend {
@@ -401,21 +497,14 @@ const formatTooltip = (day: HeatmapDay): string => {
   gap: 4px;
 }
 
-.legend-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  padding: 0 2px;
+.legend .heatmap-cell {
+  width: 11px;
+  height: 11px;
 }
 
-@media (max-width: 768px) {
-  .heatmap-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .stats-pills {
-    width: 100%;
-    justify-content: flex-start;
-  }
+.legend-label {
+  font-size: 11px;
+  padding: 0 4px;
+  user-select: none;
 }
 </style>

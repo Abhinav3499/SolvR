@@ -10,7 +10,7 @@ describe('ActivityHeatmap.vue', () => {
     setActivePinia(createPinia())
   })
 
-  it('renders streak statistics properly', () => {
+  it('renders LeetCode style submission statistics properly', () => {
     const store = useQuestionStore()
     const today = new Date().toISOString().split('T')[0]
     store.activityLog = {
@@ -19,11 +19,10 @@ describe('ActivityHeatmap.vue', () => {
 
     const wrapper = mount(ActivityHeatmap)
 
-    expect(wrapper.text()).toContain('Daily Consistency & Heatmap')
-    expect(wrapper.text()).toContain('1 Day Streak')
-    expect(wrapper.text()).toContain('Streak')
-    expect(wrapper.text()).toContain('Best')
-    expect(wrapper.text()).toContain('Days')
+    expect(wrapper.text()).toContain('submissions in the past one year')
+    expect(wrapper.text()).toContain('Total active days')
+    expect(wrapper.text()).toContain('Max streak')
+    expect(wrapper.text()).toContain('Current streak')
   })
 
   it('toggles collapse and expand', async () => {
@@ -59,18 +58,21 @@ describe('ActivityHeatmap.vue', () => {
     }]
 
     const wrapper = mount(ActivityHeatmap)
-    const duePill = wrapper.find('.due-pill')
+    const duePill = wrapper.find('.due-radar-pill')
     expect(duePill.exists()).toBe(true)
     expect(duePill.text()).toContain('1')
-    expect(duePill.text()).toContain('Due Review')
+    expect(duePill.text()).toContain('Due')
 
     await duePill.trigger('click')
     expect(wrapper.emitted('filter-due')).toBeTruthy()
   })
 
-  it('renders 26 week columns in the heatmap matrix', () => {
+  it('renders 53 week columns and month labels in the heatmap matrix', () => {
     const wrapper = mount(ActivityHeatmap)
     const weekCols = wrapper.findAll('.week-column')
-    expect(weekCols).toHaveLength(26)
+    expect(weekCols).toHaveLength(53)
+
+    const monthLabels = wrapper.findAll('.month-label')
+    expect(monthLabels.length).toBeGreaterThan(6)
   })
 })

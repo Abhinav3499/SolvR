@@ -47,24 +47,6 @@ describe('HeaderBar.vue', () => {
     expect(store.theme).toBe('light')
   })
 
-  it('emits open-export-import with import when Import button is clicked', async () => {
-    const wrapper = mount(HeaderBar)
-    const importBtn = wrapper.findAll('button').find(b => b.text().includes('Import'))
-    expect(importBtn).toBeDefined()
-    await importBtn?.trigger('click')
-
-    expect(wrapper.emitted('open-export-import')?.[0]).toEqual(['import'])
-  })
-
-  it('emits open-export-import with export when Export button is clicked', async () => {
-    const wrapper = mount(HeaderBar)
-    const exportBtn = wrapper.findAll('button').find(b => b.text().includes('Export'))
-    expect(exportBtn).toBeDefined()
-    await exportBtn?.trigger('click')
-
-    expect(wrapper.emitted('open-export-import')?.[0]).toEqual(['export'])
-  })
-
   it('emits open-social when Friends button is clicked', async () => {
     const wrapper = mount(HeaderBar)
     const friendsBtn = wrapper.find('.friends-btn')
@@ -81,5 +63,14 @@ describe('HeaderBar.vue', () => {
     await authBtn.trigger('click')
 
     expect(wrapper.emitted('open-auth')).toBeTruthy()
+  })
+
+  it('emits open-quick-add when Add from LeetCode/CF button is clicked', async () => {
+    const wrapper = mount(HeaderBar)
+    const quickAddBtn = wrapper.find('.quick-add-btn')
+    expect(quickAddBtn.exists()).toBe(true)
+    await quickAddBtn.trigger('click')
+
+    expect(wrapper.emitted('open-quick-add')).toBeTruthy()
   })
 })

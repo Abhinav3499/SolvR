@@ -43,6 +43,7 @@ export interface QuestionInput {
   resource?: string
   difficulty?: Difficulty
   tags?: string[]
+  notes?: string
 }
 
 export interface QuestionUpdate {
