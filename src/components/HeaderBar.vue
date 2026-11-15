@@ -2,7 +2,6 @@
   <header class="header">
     <div class="header-left">
       <div class="logo-title-group">
-        <img src="../assets/logo.png" alt="Logo" class="logo" />
         <h1>SolvR</h1>
       </div>
       <p>Build consistency. Measure progress. Crack interviews.</p>
