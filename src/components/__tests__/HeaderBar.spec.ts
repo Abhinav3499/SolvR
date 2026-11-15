@@ -46,4 +46,13 @@ describe('HeaderBar.vue', () => {
 
     expect(store.theme).toBe('light')
   })
+
+  it('emits open-export-import when backup button is clicked', async () => {
+    const wrapper = mount(HeaderBar)
+    const backupBtn = wrapper.find('button[title="Backup & Restore Data"]')
+    expect(backupBtn.exists()).toBe(true)
+    await backupBtn.trigger('click')
+
+    expect(wrapper.emitted('open-export-import')).toBeTruthy()
+  })
 })
