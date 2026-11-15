@@ -12,10 +12,12 @@
           <slot></slot>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" @click="$emit('close')">Cancel</button>
-          <button class="btn btn-primary" @click="$emit('confirm')">
-            {{ confirmText }}
-          </button>
+          <slot name="footer">
+            <button class="btn btn-secondary" @click="$emit('close')">Cancel</button>
+            <button class="btn btn-primary" @click="$emit('confirm')">
+              {{ confirmText }}
+            </button>
+          </slot>
         </div>
       </div>
     </div>
