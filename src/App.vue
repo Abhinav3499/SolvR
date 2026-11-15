@@ -1,7 +1,10 @@
 <template>
   <div id="app">
     <!-- Header -->
-    <HeaderBar @add-topic="showTopicModal = true" />
+    <HeaderBar
+      @add-topic="showTopicModal = true"
+      @open-export-import="showExportImportModal = true"
+    />
 
     <!-- Search & Filter -->
     <SearchFilter />
@@ -67,6 +70,11 @@
       @close="notesQuestion = null"
     />
 
+    <ExportImportModal
+      v-if="showExportImportModal"
+      @close="showExportImportModal = false"
+    />
+
     <ConfirmModal 
       v-if="deleteTarget"
       :item-name="deleteTarget.name"
@@ -92,6 +100,7 @@ import SubTopicModal from './components/SubTopicModal.vue'
 import QuestionModal from './components/QuestionModal.vue'
 import NotesModal from './components/NotesModal.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
+import ExportImportModal from './components/ExportImportModal.vue'
 
 interface DeleteTarget {
   type: 'topic' | 'subtopic' | 'question'
@@ -100,6 +109,8 @@ interface DeleteTarget {
 }
 
 const store = useQuestionStore()
+
+const showExportImportModal = ref(false)
 
 const showTopicModal = ref(false)
 const editingTopic = ref<Topic | null>(null)
