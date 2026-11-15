@@ -1,6 +1,6 @@
 export type Difficulty = 'Easy' | 'Medium' | 'Hard'
 
-export type FilterStatus = '' | 'solved' | 'unsolved' | 'starred' | 'revision'
+export type FilterStatus = '' | 'solved' | 'unsolved' | 'starred' | 'revision' | 'due'
 
 export type FilterDifficulty = '' | Difficulty
 

@@ -84,6 +84,13 @@ export const useQuestionStore = defineStore('questions', {
                 filtered = filtered.filter(q => q.isStarred)
             } else if (state.filterStatus === 'revision') {
                 filtered = filtered.filter(q => q.isRevision)
+            } else if (state.filterStatus === 'due') {
+                const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+                filtered = filtered.filter(q => {
+                    if (!q.isStarred && !q.isRevision) return false
+                    if (!q.lastPracticedAt) return true
+                    return new Date(q.lastPracticedAt).getTime() <= sevenDaysAgo
+                })
             }
 
             return filtered

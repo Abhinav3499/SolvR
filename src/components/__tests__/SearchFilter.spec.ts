@@ -30,6 +30,9 @@ describe('SearchFilter.vue', () => {
 
     await statusSelect.setValue('starred')
     expect(store.filterStatus).toBe('starred')
+
+    await statusSelect.setValue('due')
+    expect(store.filterStatus).toBe('due')
   })
 
   it('updates search query in the store when input changes', async () => {

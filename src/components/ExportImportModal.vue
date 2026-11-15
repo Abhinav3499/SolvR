@@ -55,13 +55,28 @@
 
         <button class="btn btn-secondary action-option" @click="handleExportCSV">
           <FileSpreadsheet :size="18" />
-          <span>Export as CSV</span>
+          <span>Export as CSV Spreadsheet</span>
+        </button>
+
+        <button class="btn btn-secondary action-option" @click="handleExportMarkdown">
+          <FileText :size="18" />
+          <span>Export as Markdown Notes (.md)</span>
+        </button>
+
+        <button class="btn btn-secondary action-option" @click="handleExportAnki">
+          <Layers :size="18" />
+          <span>Export Anki Flashcard Deck (.tsv)</span>
         </button>
 
         <button class="btn btn-secondary action-option" @click="handleCopyJSON">
           <Check v-if="copied" :size="18" class="text-green" />
           <Copy v-else :size="18" />
           <span>{{ copied ? 'JSON Copied to Clipboard!' : 'Copy JSON to Clipboard' }}</span>
+        </button>
+
+        <button class="btn btn-primary action-option queue-btn" @click="handleQueueAllExports">
+          <DownloadCloud :size="18" />
+          <span>{{ queueStatus || 'Download All Formats Bundle' }}</span>
         </button>
       </div>
     </div>
@@ -147,6 +162,9 @@ import {
   Upload,
   FileJson,
   FileSpreadsheet,
+  FileText,
+  Layers,
+  DownloadCloud,
   Copy,
   Check,
   AlertCircle
@@ -154,6 +172,7 @@ import {
 import BaseModal from './BaseModal.vue'
 import { useQuestionStore } from '../stores/questionStore'
 import { parseCSVToQuestions } from '../utils/csv'
+import { generateMarkdownExport, generateAnkiExport } from '../utils/exportGenerators'
 import type { ExportPayload, ImportMode } from '../types'
 
 interface Props {
@@ -172,6 +191,7 @@ const store = useQuestionStore()
 
 const activeTab = ref<'export' | 'import'>(props.initialTab)
 const copied = ref(false)
+const queueStatus = ref('')
 const importMode = ref<ImportMode>('merge')
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -196,6 +216,48 @@ const handleExportCSV = () => {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const dateStr = new Date().toISOString().split('T')[0]
   downloadBlob(blob, `solvr-questions-${dateStr}.csv`)
+}
+
+const handleExportMarkdown = () => {
+  const md = generateMarkdownExport(
+    store.topics,
+    store.subTopics,
+    store.questions,
+    store.overallProgress
+  )
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' })
+  const dateStr = new Date().toISOString().split('T')[0]
+  downloadBlob(blob, `solvr-sheet-${dateStr}.md`)
+}
+
+const handleExportAnki = () => {
+  const tsv = generateAnkiExport(store.questions)
+  const blob = new Blob([tsv], { type: 'text/tab-separated-values;charset=utf-8;' })
+  const dateStr = new Date().toISOString().split('T')[0]
+  downloadBlob(blob, `solvr-anki-deck-${dateStr}.tsv`)
+}
+
+const handleQueueAllExports = async () => {
+  queueStatus.value = 'Preparing JSON...'
+  handleExportJSON()
+  await new Promise(r => setTimeout(r, 400))
+
+  queueStatus.value = 'Preparing CSV...'
+  handleExportCSV()
+  await new Promise(r => setTimeout(r, 400))
+
+  queueStatus.value = 'Preparing Markdown...'
+  handleExportMarkdown()
+  await new Promise(r => setTimeout(r, 400))
+
+  queueStatus.value = 'Preparing Anki Deck...'
+  handleExportAnki()
+  await new Promise(r => setTimeout(r, 400))
+
+  queueStatus.value = 'All 4 Exports Downloaded!'
+  setTimeout(() => {
+    queueStatus.value = ''
+  }, 3000)
 }
 
 const handleDownloadCSVTemplate = () => {

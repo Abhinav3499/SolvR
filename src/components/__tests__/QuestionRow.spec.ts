@@ -71,4 +71,17 @@ describe('QuestionRow.vue', () => {
     await deleteBtn.trigger('click')
     expect(wrapper.emitted('delete')?.[0]).toEqual([mockQuestion])
   })
+
+  it('renders 7d+ Due badge when starred question was practiced 7+ days ago', () => {
+    mockQuestion.isStarred = true
+    mockQuestion.lastPracticedAt = new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString()
+
+    const wrapper = mount(QuestionRow, {
+      props: { question: mockQuestion }
+    })
+
+    const dueTag = wrapper.find('.due-tag')
+    expect(dueTag.exists()).toBe(true)
+    expect(dueTag.text()).toContain('7d+ Due')
+  })
 })

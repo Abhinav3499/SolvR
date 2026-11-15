@@ -38,6 +38,7 @@
       <option value="unsolved">Unsolved</option>
       <option value="starred">Starred</option>
       <option value="revision">Revision</option>
+      <option value="due">Due for Review (7+ days)</option>
     </select>
   </div>
 </template>

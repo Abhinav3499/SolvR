@@ -22,6 +22,13 @@
         <a :href="question.link" target="_blank" rel="noopener">
           {{ question.title }}
         </a>
+        <span 
+          v-if="isDueForReview" 
+          class="due-tag" 
+          title="Starred or revision question not practiced in 7+ days"
+        >
+          7d+ Due
+        </span>
       </div>
       <div class="question-tags">
         <span v-for="tag in question.tags.slice(0, 3)" :key="tag" class="tag">
@@ -101,11 +108,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Check, Star, RotateCcw, FileText, Youtube, GripVertical, Pencil, Trash2 } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import type { Question } from '../types'
 
-defineProps<{
+const props = defineProps<{
   question: Question
 }>()
 
@@ -116,6 +124,13 @@ defineEmits<{
 }>()
 
 const store = useQuestionStore()
+
+const isDueForReview = computed(() => {
+  if (!props.question.isStarred && !props.question.isRevision) return false
+  if (!props.question.lastPracticedAt) return true
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  return new Date(props.question.lastPracticedAt).getTime() <= sevenDaysAgo
+})
 </script>
 
 <style scoped>
@@ -128,5 +143,19 @@ const store = useQuestionStore()
 
 .question-drag-handle:active {
   cursor: grabbing;
+}
+
+.due-tag {
+  display: inline-block;
+  padding: 1px 7px;
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-red);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-left: 8px;
+  vertical-align: middle;
 }
 </style>

@@ -128,7 +128,7 @@ interface DeleteTarget {
 const store = useQuestionStore()
 
 const handleFilterDueReview = () => {
-  store.setFilterStatus('revision')
+  store.setFilterStatus('due')
 }
 
 const showExportImportModal = ref(false)
