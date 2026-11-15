@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { parseCSVRows, parseCSVToQuestions } from '../csv'
 
 describe('CSV parser utils', () => {
@@ -33,6 +35,15 @@ describe('CSV parser utils', () => {
     expect(questions[1].difficulty).toBe('Medium')
     expect(questions[1].isStarred).toBe(true)
     expect(questions[1].isRevision).toBe(true)
+  })
+
+  it('parses public/sample-questions.csv file correctly', () => {
+    const csvContent = readFileSync(resolve(__dirname, '../../../public/sample-questions.csv'), 'utf-8')
+    const { questions, topicsCount, error } = parseCSVToQuestions(csvContent)
+
+    expect(error).toBeUndefined()
+    expect(questions.length).toBe(18)
+    expect(topicsCount).toBe(8)
   })
 
   it('returns error when header does not contain Title column', () => {
