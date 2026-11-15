@@ -6,11 +6,12 @@
     @confirm="handleSave"
   >
     <div class="form-group">
-      <label>{{ question.title }}</label>
+      <label class="notes-question-title">{{ question.title }}</label>
+      <span class="notes-hint">Write your approach, time/space complexity, edge cases, and insights</span>
       <textarea 
         v-model="notes" 
-        placeholder="Add your notes, approach, or important points..."
-        rows="6"
+        placeholder="e.g. Two-pointer approach: start from both ends and move inwards. Time O(N), Space O(1)..."
+        rows="7"
       ></textarea>
     </div>
   </BaseModal>
@@ -38,3 +39,19 @@ const handleSave = () => {
   emit('close')
 }
 </script>
+
+<style scoped>
+.notes-question-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.notes-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+</style>

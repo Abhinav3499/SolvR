@@ -16,7 +16,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="$emit('close')">Cancel</button>
-          <button class="btn btn-primary" style="background: var(--accent-red);" @click="$emit('confirm')">
+          <button class="btn btn-danger-solid" @click="$emit('confirm')">
             Delete
           </button>
         </div>

@@ -285,6 +285,19 @@ body {
   color: var(--accent-red);
 }
 
+.btn-danger-solid {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px -2px rgba(244, 63, 94, 0.45);
+}
+
+.btn-danger-solid:hover {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  box-shadow: 0 6px 20px -2px rgba(244, 63, 94, 0.6);
+  transform: translateY(-1px);
+}
+
 /* Search and Filter Bar */
 .search-filter-bar {
   display: flex;
