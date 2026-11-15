@@ -269,4 +269,121 @@ describe('useQuestionStore', () => {
       expect(store.theme).toBe('dark')
     })
   })
+
+  describe('Export and Import', () => {
+    it('generates export payload with version and timestamp', () => {
+      const store = useQuestionStore()
+      store.topics = [{ id: 't1', name: 'Arrays', order: 0 }]
+      store.subTopics = [{ id: 'st1', topicId: 't1', name: 'Two Pointers', order: 0 }]
+      store.questions = [{
+        id: 'q1',
+        topicId: 't1',
+        subTopicId: 'st1',
+        title: 'Two Sum',
+        link: 'https://leetcode.com/problems/two-sum',
+        resource: '',
+        difficulty: 'Easy',
+        tags: ['Array'],
+        notes: '',
+        isSolved: true,
+        isRevision: false,
+        isStarred: true,
+        order: 0
+      }]
+
+      const exported = store.getExportPayload()
+      expect(exported.version).toBe(1)
+      expect(exported.topics).toHaveLength(1)
+      expect(exported.subTopics).toHaveLength(1)
+      expect(exported.questions).toHaveLength(1)
+      expect(exported.questions[0].title).toBe('Two Sum')
+    })
+
+    it('generates properly formatted CSV string', () => {
+      const store = useQuestionStore()
+      store.topics = [{ id: 't1', name: 'Trees', order: 0 }]
+      store.subTopics = []
+      store.questions = [{
+        id: 'q1',
+        topicId: 't1',
+        subTopicId: null,
+        title: 'Max Depth',
+        link: 'https://leetcode.com',
+        resource: '',
+        difficulty: 'Easy',
+        tags: ['Tree', 'DFS'],
+        notes: 'Use recursion "simple"',
+        isSolved: true,
+        isRevision: false,
+        isStarred: false,
+        order: 0
+      }]
+
+      const csv = store.getCSVExport()
+      expect(csv).toContain('Topic,SubTopic,Title,Difficulty')
+      expect(csv).toContain('"Trees"')
+      expect(csv).toContain('"Max Depth"')
+      expect(csv).toContain('Yes,No,No')
+    })
+
+    it('rejects invalid import payloads', () => {
+      const store = useQuestionStore()
+      expect(store.importData(null).success).toBe(false)
+      expect(store.importData({ invalid: true }).success).toBe(false)
+    })
+
+    it('replaces data in replace mode', () => {
+      const store = useQuestionStore()
+      store.topics = [{ id: 'old-1', name: 'Old', order: 0 }]
+
+      const newBackup = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        topics: [{ id: 'new-1', name: 'New Topic', order: 0 }],
+        subTopics: [],
+        questions: [{
+          id: 'new-q1',
+          topicId: 'new-1',
+          subTopicId: null,
+          title: 'Imported Q',
+          link: '',
+          resource: '',
+          difficulty: 'Medium' as const,
+          tags: [],
+          notes: '',
+          isSolved: false,
+          isRevision: false,
+          isStarred: false,
+          order: 0
+        }]
+      }
+
+      const res = store.importData(newBackup, 'replace')
+      expect(res.success).toBe(true)
+      expect(store.topics).toHaveLength(1)
+      expect(store.topics[0].id).toBe('new-1')
+      expect(store.questions).toHaveLength(1)
+    })
+
+    it('merges data without deleting existing entities in merge mode', () => {
+      const store = useQuestionStore()
+      store.topics = [{ id: 't1', name: 'Existing Topic', order: 0 }]
+      store.subTopics = []
+      store.questions = []
+
+      const incoming = {
+        topics: [
+          { id: 't1', name: 'Updated Existing Topic', order: 0 },
+          { id: 't2', name: 'Brand New Topic', order: 1 }
+        ],
+        subTopics: [],
+        questions: []
+      }
+
+      const res = store.importData(incoming, 'merge')
+      expect(res.success).toBe(true)
+      expect(store.topics).toHaveLength(2)
+      expect(store.topics.find(t => t.id === 't1')?.name).toBe('Updated Existing Topic')
+    })
+  })
 })

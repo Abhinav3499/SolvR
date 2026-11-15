@@ -10,7 +10,9 @@ import type {
     FilterDifficulty,
     FilterStatus,
     Theme,
-    Progress
+    Progress,
+    ExportPayload,
+    ImportMode
 } from '../types'
 
 export const useQuestionStore = defineStore('questions', {
@@ -218,6 +220,95 @@ export const useQuestionStore = defineStore('questions', {
 
         toggleTheme() {
             this.theme = this.theme === 'dark' ? 'light' : 'dark'
+        },
+
+        getExportPayload(): ExportPayload {
+            return {
+                version: 1,
+                exportedAt: new Date().toISOString(),
+                topics: JSON.parse(JSON.stringify(this.topics)),
+                subTopics: JSON.parse(JSON.stringify(this.subTopics)),
+                questions: JSON.parse(JSON.stringify(this.questions))
+            }
+        },
+
+        getCSVExport(): string {
+            const topicMap = new Map(this.topics.map(t => [t.id, t.name]))
+            const subTopicMap = new Map(this.subTopics.map(st => [st.id, st.name]))
+
+            const headers = [
+                'Topic',
+                'SubTopic',
+                'Title',
+                'Difficulty',
+                'Link',
+                'Resource',
+                'Tags',
+                'Solved',
+                'Starred',
+                'Revision',
+                'Notes'
+            ]
+
+            const escapeCSV = (val: string) => `"${val.replace(/"/g, '""')}"`
+
+            const rows = this.questions.map(q => [
+                escapeCSV(topicMap.get(q.topicId) || ''),
+                escapeCSV(q.subTopicId ? (subTopicMap.get(q.subTopicId) || '') : ''),
+                escapeCSV(q.title),
+                escapeCSV(q.difficulty),
+                escapeCSV(q.link),
+                escapeCSV(q.resource),
+                escapeCSV(q.tags.join(', ')),
+                q.isSolved ? 'Yes' : 'No',
+                q.isStarred ? 'Yes' : 'No',
+                q.isRevision ? 'Yes' : 'No',
+                escapeCSV(q.notes)
+            ].join(','))
+
+            return [headers.join(','), ...rows].join('\n')
+        },
+
+        importData(payload: unknown, mode: ImportMode = 'replace'): { success: boolean; error?: string } {
+            if (!payload || typeof payload !== 'object') {
+                return { success: false, error: 'Invalid file format: payload must be an object' }
+            }
+
+            const data = payload as Partial<ExportPayload>
+
+            if (!Array.isArray(data.topics) || !Array.isArray(data.questions)) {
+                return { success: false, error: 'Invalid backup structure: topics and questions arrays are required' }
+            }
+
+            const importedTopics = (data.topics || []).filter(t => t && typeof t.id === 'string' && typeof t.name === 'string')
+            const importedSubTopics = (data.subTopics || []).filter(st => st && typeof st.id === 'string' && typeof st.topicId === 'string' && typeof st.name === 'string')
+            const importedQuestions = (data.questions || []).filter(q => q && typeof q.id === 'string' && typeof q.topicId === 'string' && typeof q.title === 'string')
+
+            if (mode === 'replace') {
+                this.topics = importedTopics
+                this.subTopics = importedSubTopics
+                this.questions = importedQuestions
+            } else {
+                for (const t of importedTopics) {
+                    const idx = this.topics.findIndex(item => item.id === t.id)
+                    if (idx >= 0) this.topics[idx] = t
+                    else this.topics.push(t)
+                }
+
+                for (const st of importedSubTopics) {
+                    const idx = this.subTopics.findIndex(item => item.id === st.id)
+                    if (idx >= 0) this.subTopics[idx] = st
+                    else this.subTopics.push(st)
+                }
+
+                for (const q of importedQuestions) {
+                    const idx = this.questions.findIndex(item => item.id === q.id)
+                    if (idx >= 0) this.questions[idx] = q
+                    else this.questions.push(q)
+                }
+            }
+
+            return { success: true }
         }
     }
 })

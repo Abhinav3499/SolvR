@@ -66,3 +66,14 @@ export interface SeedData {
   subTopics: SubTopic[]
   questions: Question[]
 }
+
+export type ImportMode = 'replace' | 'merge'
+
+export interface ExportPayload {
+  version: number
+  exportedAt: string
+  topics: Topic[]
+  subTopics: SubTopic[]
+  questions: Question[]
+}
+
