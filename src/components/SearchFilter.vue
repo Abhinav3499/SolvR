@@ -1,5 +1,23 @@
 <template>
   <div class="search-filter-bar">
+    <div class="search-wrapper">
+      <Search :size="18" class="search-icon" />
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search questions or tags..."
+        :value="store.searchQuery"
+        @input="handleSearchInput"
+      />
+      <button 
+        v-if="store.searchQuery" 
+        class="btn-icon search-clear-btn" 
+        title="Clear search"
+        @click="store.setSearchQuery('')"
+      >
+        <X :size="16" />
+      </button>
+    </div>
     <select 
       class="filter-select"
       :value="store.filterDifficulty"
@@ -25,10 +43,16 @@
 </template>
 
 <script setup lang="ts">
+import { Search, X } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import type { FilterDifficulty, FilterStatus } from '../types'
 
 const store = useQuestionStore()
+
+const handleSearchInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  store.setSearchQuery(target.value)
+}
 
 const handleDifficultyChange = (event: Event) => {
   const target = event.target as HTMLSelectElement

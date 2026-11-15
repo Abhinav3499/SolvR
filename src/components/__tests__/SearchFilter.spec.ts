@@ -31,4 +31,14 @@ describe('SearchFilter.vue', () => {
     await statusSelect.setValue('starred')
     expect(store.filterStatus).toBe('starred')
   })
+
+  it('updates search query in the store when input changes', async () => {
+    const store = useQuestionStore()
+    const wrapper = mount(SearchFilter)
+
+    const searchInput = wrapper.find('.search-input')
+    await searchInput.setValue('two sum')
+
+    expect(store.searchQuery).toBe('two sum')
+  })
 })

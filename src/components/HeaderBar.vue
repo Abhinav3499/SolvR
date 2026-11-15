@@ -1,22 +1,27 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <img src="../assets/logo.png" alt="Logo" class="logo" />
+      <div class="logo-title-group">
+        <img src="../assets/logo.png" alt="Logo" class="logo" />
+        <h1>SolvR</h1>
+      </div>
       <p>Build consistency. Measure progress. Crack interviews.</p>
     </div>
     <div class="progress-container">
-      <div class="progress-bar">
-        <div 
-          class="progress-fill" 
-          :style="{ width: progressPercentage + '%' }"
-        ></div>
-      </div>
-      <div class="progress-text">
-        <span>{{ progress.solved }}</span> / {{ progress.total }} solved
+      <div class="progress-pill-wrapper">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            :style="{ width: progressPercentage + '%' }"
+          ></div>
+        </div>
+        <div class="progress-text">
+          <span>{{ progress.solved }}</span> / {{ progress.total }} solved
+        </div>
       </div>
       <button class="btn btn-icon theme-toggle" @click="toggleTheme" :title="store.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
-        <Sun v-if="store.theme === 'dark'" :size="20" />
-        <Moon v-else :size="20" />
+        <Sun v-if="store.theme === 'dark'" :size="18" />
+        <Moon v-else :size="18" />
       </button>
       <button class="btn btn-secondary" @click="$emit('open-export-import', 'import')" title="Import Questions from CSV or JSON file">
         <Upload :size="16" />
@@ -27,7 +32,7 @@
         Export
       </button>
       <button class="btn btn-primary" @click="$emit('add-topic')">
-        <Plus :size="18" />
+        <Plus :size="16" />
         Add Topic
       </button>
     </div>

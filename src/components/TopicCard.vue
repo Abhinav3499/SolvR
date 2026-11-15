@@ -189,25 +189,33 @@ const hasContent = computed(() => {
 <style scoped>
 .subtopic-section {
   margin-bottom: 16px;
-  padding: 12px;
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .subtopic-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-bottom: 12px;
+  gap: 10px;
+  padding-bottom: 10px;
   margin-bottom: 12px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--glass-border);
   color: var(--text-secondary);
 }
 
 .subtopic-drag-handle {
   cursor: grab;
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+}
+
+.subtopic-drag-handle:hover {
+  color: var(--text-primary);
 }
 
 .subtopic-drag-handle:active {
@@ -216,17 +224,19 @@ const hasContent = computed(() => {
 
 .subtopic-title {
   flex: 1;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
 .subtopic-actions {
   display: flex;
-  gap: 2px;
+  gap: 4px;
 }
 
 .btn-sm {
-  padding: 4px;
+  padding: 6px;
+  border-radius: 8px;
 }
 </style>

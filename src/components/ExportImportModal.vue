@@ -306,52 +306,61 @@ const handleApplyImport = () => {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
 }
 
 .tab-btn {
-  display: inline-flex;
+  flex: 1;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid transparent;
+  padding: 10px 16px;
   border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
   color: var(--text-primary);
-  background: var(--bg-hover);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .tab-btn.active {
-  color: var(--accent-blue);
-  background: var(--bg-tertiary);
-  border-color: var(--border-color);
+  color: var(--text-primary);
+  background: var(--glass-card-hover);
+  border-color: var(--glass-border-light);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .summary-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
 }
 
 .summary-card h4 {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .summary-stats {
   display: flex;
-  gap: 20px;
+  gap: 24px;
 }
 
 .stat-item {
@@ -360,13 +369,15 @@ const handleApplyImport = () => {
 }
 
 .stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: var(--accent-green-light);
+  letter-spacing: -0.02em;
 }
 
 .stat-label {
   font-size: 0.8rem;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
@@ -396,26 +407,30 @@ const handleApplyImport = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 30px 20px;
-  background: var(--bg-tertiary);
-  border: 2px dashed var(--border-color);
-  border-radius: 12px;
+  gap: 12px;
+  padding: 36px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed rgba(99, 102, 241, 0.35);
+  border-radius: 16px;
   cursor: pointer;
-  transition: border-color 0.2s;
-  margin-bottom: 12px;
+  transition: all 0.25s ease;
+  margin-bottom: 14px;
 }
 
 .file-dropzone:hover {
-  border-color: var(--accent-blue);
+  border-color: var(--accent-purple);
+  background: rgba(99, 102, 241, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.2);
 }
 
 .dropzone-icon {
-  color: var(--accent-blue);
+  color: var(--accent-purple);
+  filter: drop-shadow(0 4px 10px rgba(99, 102, 241, 0.3));
 }
 
 .dropzone-text {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--text-secondary);
   text-align: center;
 }
@@ -424,9 +439,9 @@ const handleApplyImport = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   padding: 0 4px;
 }
 
@@ -436,7 +451,8 @@ const handleApplyImport = () => {
   color: var(--accent-blue);
   cursor: pointer;
   text-decoration: underline;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 500;
 }
 
 .btn-link:hover {
@@ -448,10 +464,11 @@ const handleApplyImport = () => {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border-radius: 8px;
-  background: rgba(248, 81, 73, 0.1);
+  border-radius: 10px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.25);
   color: var(--accent-red);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   margin-bottom: 16px;
 }
 
@@ -460,25 +477,26 @@ const handleApplyImport = () => {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border-radius: 8px;
-  background: rgba(63, 185, 80, 0.1);
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
   color: var(--accent-green-light);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   margin-top: 16px;
 }
 
 .import-preview {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .preview-stats {
   display: flex;
   gap: 16px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   margin: 10px 0 16px 0;
   color: var(--text-secondary);
 }
@@ -494,7 +512,7 @@ const handleApplyImport = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-primary);
   cursor: pointer;
 }
