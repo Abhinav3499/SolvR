@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { useLocalStorage } from '@vueuse/core'
 import { seedData } from '../data/seedData'
 import { parseCSVToQuestions } from '../utils/csv'
+import { calculateStreak, formatDateKey } from '../utils/streak'
 import type {
     Topic,
     SubTopic,
@@ -13,7 +14,9 @@ import type {
     Theme,
     Progress,
     ExportPayload,
-    ImportMode
+    ImportMode,
+    ActivityLog,
+    StreakInfo
 } from '../types'
 
 export const useQuestionStore = defineStore('questions', {
@@ -21,6 +24,7 @@ export const useQuestionStore = defineStore('questions', {
         topics: useLocalStorage<Topic[]>('qs-topics', seedData.topics),
         subTopics: useLocalStorage<SubTopic[]>('qs-subtopics', seedData.subTopics),
         questions: useLocalStorage<Question[]>('qs-questions', seedData.questions),
+        activityLog: useLocalStorage<ActivityLog>('qs-activity', {}),
         theme: useLocalStorage<Theme>('qs-theme', 'dark'),
         searchQuery: '' as string,
         filterDifficulty: '' as FilterDifficulty,
@@ -42,6 +46,19 @@ export const useQuestionStore = defineStore('questions', {
             return state.questions
                 .filter(q => q.topicId === topicId && q.subTopicId === subTopicId)
                 .sort((a, b) => a.order - b.order)
+        },
+
+        streakInfo: (state): StreakInfo => {
+            return calculateStreak(state.activityLog)
+        },
+
+        getDueForReviewQuestions: (state): Question[] => {
+            const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+            return state.questions.filter(q => {
+                if (!q.isStarred && !q.isRevision) return false
+                if (!q.lastPracticedAt) return true
+                return new Date(q.lastPracticedAt).getTime() <= sevenDaysAgo
+            })
         },
 
         filteredQuestions: (state): Question[] => {
@@ -176,7 +193,41 @@ export const useQuestionStore = defineStore('questions', {
 
         toggleSolved(id: string) {
             const question = this.questions.find(q => q.id === id)
-            if (question) question.isSolved = !question.isSolved
+            if (question) {
+                question.isSolved = !question.isSolved
+                const todayKey = formatDateKey(new Date())
+
+                if (question.isSolved) {
+                    question.solvedAt = new Date().toISOString()
+                    question.lastPracticedAt = new Date().toISOString()
+
+                    const currentDayList = this.activityLog[todayKey] ? [...this.activityLog[todayKey]] : []
+                    if (!currentDayList.includes(id)) {
+                        this.activityLog = {
+                            ...this.activityLog,
+                            [todayKey]: [...currentDayList, id]
+                        }
+                    }
+                } else {
+                    if (this.activityLog[todayKey]) {
+                        const updated = this.activityLog[todayKey].filter(qid => qid !== id)
+                        this.activityLog = {
+                            ...this.activityLog,
+                            [todayKey]: updated
+                        }
+                    }
+                }
+            }
+        },
+
+        recordActivity(questionId: string, dateKey = formatDateKey(new Date())) {
+            const currentDayList = this.activityLog[dateKey] ? [...this.activityLog[dateKey]] : []
+            if (!currentDayList.includes(questionId)) {
+                this.activityLog = {
+                    ...this.activityLog,
+                    [dateKey]: [...currentDayList, questionId]
+                }
+            }
         },
 
         toggleRevision(id: string) {
@@ -217,6 +268,7 @@ export const useQuestionStore = defineStore('questions', {
             this.topics = [...seedData.topics]
             this.subTopics = [...seedData.subTopics]
             this.questions = [...seedData.questions]
+            this.activityLog = {}
         },
 
         toggleTheme() {
@@ -229,7 +281,8 @@ export const useQuestionStore = defineStore('questions', {
                 exportedAt: new Date().toISOString(),
                 topics: JSON.parse(JSON.stringify(this.topics)),
                 subTopics: JSON.parse(JSON.stringify(this.subTopics)),
-                questions: JSON.parse(JSON.stringify(this.questions))
+                questions: JSON.parse(JSON.stringify(this.questions)),
+                activityLog: JSON.parse(JSON.stringify(this.activityLog))
             }
         },
 
@@ -306,6 +359,19 @@ export const useQuestionStore = defineStore('questions', {
                     const idx = this.questions.findIndex(item => item.id === q.id)
                     if (idx >= 0) this.questions[idx] = q
                     else this.questions.push(q)
+                }
+            }
+
+            if (data.activityLog && typeof data.activityLog === 'object') {
+                if (mode === 'replace') {
+                    this.activityLog = data.activityLog as ActivityLog
+                } else {
+                    const mergedLog = { ...this.activityLog }
+                    for (const [date, ids] of Object.entries(data.activityLog as ActivityLog)) {
+                        const existing = mergedLog[date] || []
+                        mergedLog[date] = Array.from(new Set([...existing, ...ids]))
+                    }
+                    this.activityLog = mergedLog
                 }
             }
 

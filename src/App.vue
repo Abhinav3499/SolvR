@@ -6,6 +6,11 @@
       @open-export-import="openExportImport"
     />
 
+    <!-- Streak & Activity Heatmap -->
+    <ActivityHeatmap
+      @filter-due="handleFilterDueReview"
+    />
+
     <!-- Search & Filter -->
     <SearchFilter />
 
@@ -112,6 +117,7 @@ import QuestionModal from './components/QuestionModal.vue'
 import NotesModal from './components/NotesModal.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 import ExportImportModal from './components/ExportImportModal.vue'
+import ActivityHeatmap from './components/ActivityHeatmap.vue'
 
 interface DeleteTarget {
   type: 'topic' | 'subtopic' | 'question'
@@ -120,6 +126,10 @@ interface DeleteTarget {
 }
 
 const store = useQuestionStore()
+
+const handleFilterDueReview = () => {
+  store.setFilterStatus('revision')
+}
 
 const showExportImportModal = ref(false)
 const exportImportTab = ref<'export' | 'import'>('import')

@@ -33,6 +33,8 @@ export interface Question {
   isRevision: boolean
   isStarred: boolean
   order: number
+  lastPracticedAt?: string | null
+  solvedAt?: string | null
 }
 
 export interface QuestionInput {
@@ -75,5 +77,24 @@ export interface ExportPayload {
   topics: Topic[]
   subTopics: SubTopic[]
   questions: Question[]
+  activityLog?: ActivityLog
+}
+
+export type ActivityLog = Record<string, string[]>
+
+export interface StreakInfo {
+  currentStreak: number
+  longestStreak: number
+  totalActiveDays: number
+  todaySolvedCount: number
+  lastSolvedDate: string | null
+}
+
+export interface HeatmapDay {
+  date: string
+  count: number
+  level: 0 | 1 | 2 | 3 | 4
+  dayOfWeek: number
+  weekIndex: number
 }
 

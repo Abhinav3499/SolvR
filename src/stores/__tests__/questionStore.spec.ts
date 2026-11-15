@@ -408,4 +408,82 @@ describe('useQuestionStore', () => {
       expect(store.questions[1].isStarred).toBe(true)
     })
   })
+
+  describe('Streak and Spaced Repetition', () => {
+    it('updates activity log and streak when question is toggled solved', () => {
+      const store = useQuestionStore()
+      store.questions = [{
+        id: 'q1',
+        topicId: 't1',
+        subTopicId: null,
+        title: 'Two Sum',
+        link: '',
+        resource: '',
+        difficulty: 'Easy',
+        tags: [],
+        notes: '',
+        isSolved: false,
+        isRevision: false,
+        isStarred: false,
+        order: 0
+      }]
+      store.activityLog = {}
+
+      store.toggleSolved('q1')
+      expect(store.questions[0].isSolved).toBe(true)
+      expect(store.questions[0].solvedAt).toBeDefined()
+      expect(store.streakInfo.currentStreak).toBe(1)
+      expect(store.streakInfo.todaySolvedCount).toBe(1)
+
+      // Toggle off
+      store.toggleSolved('q1')
+      expect(store.questions[0].isSolved).toBe(false)
+      expect(store.streakInfo.todaySolvedCount).toBe(0)
+    })
+
+    it('identifies questions due for 7-day revision review', () => {
+      const store = useQuestionStore()
+      const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString()
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+
+      store.questions = [
+        {
+          id: 'q1',
+          topicId: 't1',
+          subTopicId: null,
+          title: 'Old Starred Question',
+          link: '',
+          resource: '',
+          difficulty: 'Medium',
+          tags: [],
+          notes: '',
+          isSolved: true,
+          isRevision: false,
+          isStarred: true,
+          lastPracticedAt: eightDaysAgo,
+          order: 0
+        },
+        {
+          id: 'q2',
+          topicId: 't1',
+          subTopicId: null,
+          title: 'Recent Question',
+          link: '',
+          resource: '',
+          difficulty: 'Hard',
+          tags: [],
+          notes: '',
+          isSolved: true,
+          isRevision: true,
+          isStarred: false,
+          lastPracticedAt: twoDaysAgo,
+          order: 1
+        }
+      ]
+
+      const due = store.getDueForReviewQuestions
+      expect(due).toHaveLength(1)
+      expect(due[0].id).toBe('q1')
+    })
+  })
 })

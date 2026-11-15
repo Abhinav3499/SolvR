@@ -171,6 +171,26 @@ body {
   background: rgba(0, 0, 0, 0.03);
 }
 
+.streak-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--accent-orange);
+  padding-right: 8px;
+  border-right: 1px solid var(--glass-border);
+}
+
+.streak-indicator .flame-icon {
+  color: var(--text-muted);
+}
+
+.streak-indicator .flame-icon.active {
+  color: var(--accent-orange);
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+}
+
 .progress-bar {
   width: 160px;
   height: 8px;

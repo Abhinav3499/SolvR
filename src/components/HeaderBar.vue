@@ -8,6 +8,10 @@
     </div>
     <div class="progress-container">
       <div class="progress-pill-wrapper">
+        <div class="streak-indicator" title="Current Daily Streak">
+          <Flame :size="15" class="flame-icon" :class="{ active: streakInfo.currentStreak > 0 }" />
+          <span>{{ streakInfo.currentStreak }}</span>
+        </div>
         <div class="progress-bar">
           <div 
             class="progress-fill" 
@@ -40,7 +44,7 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { Plus, Sun, Moon, Upload, Download } from 'lucide-vue-next'
+import { Plus, Sun, Moon, Upload, Download, Flame } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import type { Theme } from '../types'
 
@@ -51,6 +55,7 @@ defineEmits<{
 
 const store = useQuestionStore()
 const progress = computed(() => store.overallProgress)
+const streakInfo = computed(() => store.streakInfo)
 const progressPercentage = computed<number>(() => 
   progress.value.total > 0 
     ? Math.round((progress.value.solved / progress.value.total) * 100) 
