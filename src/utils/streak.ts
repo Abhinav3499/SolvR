@@ -116,8 +116,101 @@ export interface MonthLabel {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+export interface MonthHeatmapDay {
+  date: string
+  dayOfMonth: number
+  count: number
+  level: 0 | 1 | 2 | 3 | 4
+  dayOfWeek: number
+}
+
+export interface MonthBlock {
+  key: string
+  monthName: string
+  year: number
+  label: string
+  totalSolved: number
+  weeks: (MonthHeatmapDay | null)[][]
+}
+
 /**
- * Generate 1-year (53 weeks) heatmap grid with month-wise labels like LeetCode
+ * Generate 1-year calendar where EACH MONTH IS SEPARATE
+ */
+export function generateSeparateMonthHeatmaps(
+  activityLog: ActivityLog = {},
+  referenceDate: Date = new Date(),
+  numberOfMonths = 12
+): {
+  months: MonthBlock[]
+  totalSolvedPastYear: number
+} {
+  const ref = new Date(referenceDate)
+  ref.setHours(0, 0, 0, 0)
+  
+  const months: MonthBlock[] = []
+  let totalSolvedPastYear = 0
+
+  for (let i = numberOfMonths - 1; i >= 0; i--) {
+    const target = new Date(ref.getFullYear(), ref.getMonth() - i, 1)
+    const year = target.getFullYear()
+    const monthIndex = target.getMonth()
+    const monthName = MONTH_NAMES[monthIndex]
+    const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`
+    const label = `${monthName} ${year}`
+
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+    const weeks: (MonthHeatmapDay | null)[][] = []
+    let currentWeek: (MonthHeatmapDay | null)[] = Array(7).fill(null)
+    let monthSolved = 0
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayDate = new Date(year, monthIndex, d)
+      const dayOfWeek = dayDate.getDay() // 0 (Sun) .. 6 (Sat)
+      const dateKey = formatDateKey(dayDate)
+      const count = activityLog[dateKey]?.length || 0
+
+      monthSolved += count
+      totalSolvedPastYear += count
+
+      let level: 0 | 1 | 2 | 3 | 4 = 0
+      if (count === 1) level = 1
+      else if (count >= 2 && count <= 3) level = 2
+      else if (count >= 4 && count <= 6) level = 3
+      else if (count >= 7) level = 4
+
+      currentWeek[dayOfWeek] = {
+        date: dateKey,
+        dayOfMonth: d,
+        count,
+        level,
+        dayOfWeek
+      }
+
+      // If Saturday (end of week) or last day of month
+      if (dayOfWeek === 6 || d === daysInMonth) {
+        weeks.push(currentWeek)
+        currentWeek = Array(7).fill(null)
+      }
+    }
+
+    months.push({
+      key,
+      monthName,
+      year,
+      label,
+      totalSolved: monthSolved,
+      weeks
+    })
+  }
+
+  return {
+    months,
+    totalSolvedPastYear
+  }
+}
+
+/**
+ * Continuous 53-week generator (maintained for legacy compatibility)
  */
 export function generateHeatmapDays(
   activityLog: ActivityLog = {},
@@ -134,7 +227,6 @@ export function generateHeatmapDays(
   const endDate = new Date(referenceDate)
   endDate.setHours(0, 0, 0, 0)
 
-  // Align to end of current week (Saturday = 6)
   const daysUntilEndOfWeek = 6 - endDate.getDay()
   const gridEnd = new Date(endDate)
   gridEnd.setDate(gridEnd.getDate() + daysUntilEndOfWeek)
@@ -171,13 +263,11 @@ export function generateHeatmapDays(
     cursor.setDate(cursor.getDate() + 1)
   }
 
-  // Calculate Month Labels for the 53 week columns
   const monthLabels: MonthLabel[] = []
   let lastMonth = -1
   let lastPlacedWeek = -5
 
   for (let w = 0; w < weeks; w++) {
-    // Check day in middle of week (Wednesday = day 3) or day 0
     const sampleDay = days.find(d => d.weekIndex === w && d.dayOfWeek === 3) || days.find(d => d.weekIndex === w)
     if (sampleDay) {
       const monthIndex = parseDateKey(sampleDay.date).getMonth()

@@ -67,12 +67,13 @@ describe('ActivityHeatmap.vue', () => {
     expect(wrapper.emitted('filter-due')).toBeTruthy()
   })
 
-  it('renders 53 week columns and month labels in the heatmap matrix', () => {
+  it('renders 12 separate month blocks with individual headers', () => {
     const wrapper = mount(ActivityHeatmap)
-    const weekCols = wrapper.findAll('.week-column')
-    expect(weekCols).toHaveLength(53)
+    const monthBlocks = wrapper.findAll('.month-block')
+    expect(monthBlocks).toHaveLength(12)
 
-    const monthLabels = wrapper.findAll('.month-label')
-    expect(monthLabels.length).toBeGreaterThan(6)
+    const firstMonthHeader = monthBlocks[0].find('.month-name')
+    expect(firstMonthHeader.exists()).toBe(true)
+    expect(firstMonthHeader.text().length).toBeGreaterThanOrEqual(3)
   })
 })

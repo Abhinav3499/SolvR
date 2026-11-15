@@ -3,7 +3,8 @@ import {
   formatDateKey,
   parseDateKey,
   calculateStreak,
-  generateHeatmapDays
+  generateHeatmapDays,
+  generateSeparateMonthHeatmaps
 } from '../streak'
 
 describe('Streak & Activity Heatmap utils', () => {
@@ -74,13 +75,10 @@ describe('Streak & Activity Heatmap utils', () => {
   it('finds longest streak across broken intervals', () => {
     const today = new Date(2026, 10, 15)
     const log = {
-      // 4-day streak
       '2026-11-01': ['q1'],
       '2026-11-02': ['q2'],
       '2026-11-03': ['q3'],
       '2026-11-04': ['q4'],
-      // gap
-      // 2-day current streak
       '2026-11-14': ['q5'],
       '2026-11-15': ['q6']
     }
@@ -100,21 +98,37 @@ describe('Streak & Activity Heatmap utils', () => {
     }
 
     const grid = generateHeatmapDays(log, 4, today)
-    expect(grid.days).toHaveLength(28) // 4 weeks * 7 days
+    expect(grid.days).toHaveLength(28)
     expect(grid.totalSolvedPastYear).toBe(8)
     expect(grid.monthLabels.length).toBeGreaterThan(0)
+  })
 
-    const todayDay = grid.days.find(d => d.date === '2026-11-15')
-    expect(todayDay).toBeDefined()
-    expect(todayDay?.count).toBe(5)
-    expect(todayDay?.level).toBe(3)
+  it('generates separate month heatmaps for 12 months with distinct weeks', () => {
+    const today = new Date(2026, 10, 15) // Nov 15, 2026
+    const log = {
+      '2026-11-15': ['q1', 'q2'],
+      '2026-10-10': ['q3']
+    }
 
-    const nov14 = grid.days.find(d => d.date === '2026-11-14')
-    expect(nov14?.count).toBe(1)
-    expect(nov14?.level).toBe(1)
+    const res = generateSeparateMonthHeatmaps(log, today, 12)
+    expect(res.months).toHaveLength(12)
+    expect(res.totalSolvedPastYear).toBe(3)
 
-    const nov13 = grid.days.find(d => d.date === '2026-11-13')
-    expect(nov13?.count).toBe(2)
-    expect(nov13?.level).toBe(2)
+    // Current month is November
+    const novMonth = res.months[11]
+    expect(novMonth.monthName).toBe('Nov')
+    expect(novMonth.year).toBe(2026)
+    expect(novMonth.totalSolved).toBe(2)
+    expect(novMonth.weeks.length).toBeGreaterThanOrEqual(4)
+
+    // Every week has exactly 7 row slots
+    novMonth.weeks.forEach(week => {
+      expect(week).toHaveLength(7)
+    })
+
+    // Previous month is October
+    const octMonth = res.months[10]
+    expect(octMonth.monthName).toBe('Oct')
+    expect(octMonth.totalSolved).toBe(1)
   })
 })

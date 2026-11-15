@@ -42,29 +42,14 @@
       </div>
     </div>
 
-    <!-- LeetCode 1-Year Month-Wise Grid -->
+    <!-- 1-Year Separate Months Grid -->
     <div v-if="isExpanded" class="heatmap-body">
-      <div class="grid-scroll-container">
-        <div class="leetcode-heatmap-wrapper">
-          <!-- Month Labels Header Row -->
-          <div class="months-row">
-            <div class="day-label-placeholder"></div>
-            <div class="months-track">
-              <span
-                v-for="(m, idx) in monthLabels"
-                :key="idx"
-                class="month-label"
-                :style="{ left: `${(m.weekIndex / totalWeeks) * 100}%` }"
-              >
-                {{ m.label }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Heatmap Matrix: Day Labels + Week Columns -->
-          <div class="heatmap-matrix">
-            <!-- Day of Week Labels (Mon, Wed, Fri like LeetCode) -->
-            <div class="day-labels-col">
+      <div class="grid-scroll-container" ref="scrollContainer">
+        <div class="separate-months-wrapper">
+          <!-- Day of Week Labels on the Left (Mon, Wed, Fri) -->
+          <div class="day-labels-col">
+            <div class="day-label-header-space"></div>
+            <div class="day-labels-cells">
               <span class="day-name empty-slot"></span>
               <span class="day-name">Mon</span>
               <span class="day-name empty-slot"></span>
@@ -73,21 +58,48 @@
               <span class="day-name">Fri</span>
               <span class="day-name empty-slot"></span>
             </div>
+          </div>
 
-            <!-- 53 Week Columns -->
-            <div class="weeks-grid">
-              <div 
-                v-for="weekIdx in totalWeeks" 
-                :key="weekIdx" 
-                class="week-column"
-              >
+          <!-- 12 Separate Month Blocks -->
+          <div class="months-strip">
+            <div
+              v-for="month in monthBlocks"
+              :key="month.key"
+              class="month-block glass-month"
+              :class="{ 'current-month': isCurrentMonth(month) }"
+            >
+              <!-- Month Title & Monthly Count -->
+              <div class="month-block-header">
+                <span class="month-name">{{ month.monthName }}</span>
+                <span 
+                  v-if="month.totalSolved > 0" 
+                  class="month-solved-badge"
+                  :title="`${month.totalSolved} solved in ${month.label}`"
+                >
+                  {{ month.totalSolved }}
+                </span>
+              </div>
+
+              <!-- Month 7-row Week Columns -->
+              <div class="month-weeks-grid">
                 <div
-                  v-for="day in getWeekDays(weekIdx - 1)"
-                  :key="day.date"
-                  class="heatmap-cell"
-                  :class="'level-' + day.level"
-                  :title="formatTooltip(day)"
-                ></div>
+                  v-for="(week, wIdx) in month.weeks"
+                  :key="wIdx"
+                  class="month-week-col"
+                >
+                  <template v-for="(day, dIdx) in week" :key="dIdx">
+                    <div
+                      v-if="day"
+                      class="heatmap-cell"
+                      :class="'level-' + day.level"
+                      :title="formatTooltip(day)"
+                    ></div>
+                    <div
+                      v-else
+                      class="heatmap-cell cell-placeholder"
+                    ></div>
+                  </template>
+                </div>
               </div>
             </div>
           </div>
@@ -97,7 +109,7 @@
       <!-- LeetCode Style Footer Legend -->
       <div class="heatmap-footer">
         <span class="range-info">
-          1 year submission activity (53 weeks)
+          12 individual calendar months (1 year)
         </span>
         <div class="legend">
           <span class="legend-label">Less</span>
@@ -114,11 +126,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Flame, Clock, ChevronDown } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
-import { generateHeatmapDays, parseDateKey } from '../utils/streak'
-import type { HeatmapDay } from '../types'
+import {
+  generateSeparateMonthHeatmaps,
+  parseDateKey,
+  type MonthBlock,
+  type MonthHeatmapDay
+} from '../utils/streak'
 
 defineEmits<{
   (e: 'filter-due'): void
@@ -126,24 +142,25 @@ defineEmits<{
 
 const store = useQuestionStore()
 const isExpanded = ref(true)
+const scrollContainer = ref<HTMLElement | null>(null)
 
 const streakInfo = computed(() => store.streakInfo)
 const dueQuestions = computed(() => store.getDueForReviewQuestions)
 
-// 1 full year: 53 weeks (~371 days)
+// 12 separate month blocks
 const heatmapData = computed(() => {
-  return generateHeatmapDays(store.activityLog, 53)
+  return generateSeparateMonthHeatmaps(store.activityLog, new Date(), 12)
 })
 
-const totalWeeks = computed(() => heatmapData.value.totalWeeks)
-const monthLabels = computed(() => heatmapData.value.monthLabels)
+const monthBlocks = computed<MonthBlock[]>(() => heatmapData.value.months)
 const totalSolvedPastYear = computed(() => heatmapData.value.totalSolvedPastYear)
 
-const getWeekDays = (weekIndex: number): HeatmapDay[] => {
-  return heatmapData.value.days.filter(d => d.weekIndex === weekIndex)
+const isCurrentMonth = (month: MonthBlock): boolean => {
+  const now = new Date()
+  return month.year === now.getFullYear() && month.monthName === now.toLocaleString('en-US', { month: 'short' })
 }
 
-const formatTooltip = (day: HeatmapDay): string => {
+const formatTooltip = (day: MonthHeatmapDay): string => {
   const dateObj = parseDateKey(day.date)
   const formattedDate = dateObj.toLocaleDateString('en-US', {
     month: 'short',
@@ -157,6 +174,13 @@ const formatTooltip = (day: HeatmapDay): string => {
   const submissionWord = day.count === 1 ? 'submission' : 'submissions'
   return `${day.count} ${submissionWord} on ${formattedDate}`
 }
+
+onMounted(() => {
+  // Auto scroll to current month on small screens
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollLeft = scrollContainer.value.scrollWidth
+  }
+})
 </script>
 
 <style scoped>
@@ -320,73 +344,51 @@ const formatTooltip = (day: HeatmapDay): string => {
   transform: rotate(-90deg);
 }
 
-/* LeetCode Grid Container */
+/* LeetCode Separate Months Container */
 .heatmap-body {
-  padding: 8px 22px 18px;
+  padding: 10px 22px 18px;
   border-top: 1px solid var(--glass-border);
 }
 
 .grid-scroll-container {
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
 }
 
 .grid-scroll-container::-webkit-scrollbar {
-  height: 5px;
+  height: 6px;
 }
 
 .grid-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 3px;
 }
 
-.leetcode-heatmap-wrapper {
-  display: inline-flex;
-  flex-direction: column;
-  min-width: 720px;
+.separate-months-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 900px;
   width: 100%;
 }
 
-/* Month Labels Row */
-.months-row {
-  display: flex;
-  margin-bottom: 6px;
-  height: 18px;
-  position: relative;
-}
-
-.day-label-placeholder {
-  width: 28px;
-  flex-shrink: 0;
-}
-
-.months-track {
-  position: relative;
-  flex: 1;
-  height: 100%;
-}
-
-.month-label {
-  position: absolute;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  user-select: none;
-  transform: translateX(-2px);
-}
-
-/* Heatmap Matrix */
-.heatmap-matrix {
-  display: flex;
-  gap: 6px;
-}
-
+/* Day labels column */
 .day-labels-col {
   display: flex;
   flex-direction: column;
-  gap: 3px;
   width: 28px;
   flex-shrink: 0;
+}
+
+.day-label-header-space {
+  height: 22px; /* matches .month-block-header height */
+  margin-bottom: 6px;
+}
+
+.day-labels-cells {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .day-name {
@@ -401,35 +403,98 @@ const formatTooltip = (day: HeatmapDay): string => {
   visibility: hidden;
 }
 
-.weeks-grid {
+/* Months Strip: 12 separate month blocks */
+.months-strip {
   display: flex;
-  gap: 3px;
+  gap: 10px;
   flex: 1;
 }
 
-.week-column {
+/* Individual Month Block */
+.month-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.month-block:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+.month-block.current-month {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.035);
+}
+
+/* Month Header */
+.month-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 3px;
+}
+
+.month-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.current-month .month-name {
+  color: var(--accent-emerald);
+}
+
+.month-solved-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--accent-emerald);
+}
+
+/* Weeks grid inside each month */
+.month-weeks-grid {
+  display: flex;
+  gap: 3px;
+  justify-content: flex-start;
+}
+
+.month-week-col {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  flex: 1;
 }
 
 .heatmap-cell {
-  width: 100%;
+  width: 12px;
+  height: 12px;
   aspect-ratio: 1;
-  min-width: 10px;
-  min-height: 10px;
-  max-width: 13px;
-  max-height: 13px;
   border-radius: 2.5px;
   transition: transform 0.12s ease, filter 0.15s ease;
   cursor: pointer;
 }
 
-.heatmap-cell:hover {
+.heatmap-cell:hover:not(.cell-placeholder) {
   transform: scale(1.35);
   z-index: 10;
   filter: brightness(1.2);
+}
+
+.cell-placeholder {
+  visibility: hidden;
+  cursor: default;
 }
 
 /* LeetCode Colors */
@@ -484,7 +549,7 @@ const formatTooltip = (day: HeatmapDay): string => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 11px;
   color: var(--text-muted);
   flex-wrap: wrap;
