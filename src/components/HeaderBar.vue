@@ -22,21 +22,45 @@
           <span>{{ progress.solved }}</span> / {{ progress.total }} solved
         </div>
       </div>
+
       <button class="btn btn-icon theme-toggle" @click="toggleTheme" :title="store.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
         <Sun v-if="store.theme === 'dark'" :size="18" />
         <Moon v-else :size="18" />
       </button>
+
+      <button class="btn btn-secondary friends-btn" @click="$emit('open-social')" title="Coding partners & leaderboard">
+        <Users :size="16" />
+        <span class="btn-text">Friends</span>
+        <span v-if="friendsCount > 0" class="friends-pill">{{ friendsCount }}</span>
+      </button>
+
+      <button 
+        class="btn auth-btn"
+        :class="authStore.isLoggedIn ? 'btn-auth-active' : 'btn-secondary'"
+        @click="$emit('open-auth')"
+        :title="authStore.isLoggedIn ? 'Account & Cloud Sync settings' : 'Connect free Supabase DB or sign in'"
+      >
+        <div v-if="authStore.isLoggedIn" class="user-avatar-mini">
+          <img v-if="userAvatar" :src="userAvatar" class="avatar-mini-img" alt="avatar" />
+          <span v-else>{{ userInitial }}</span>
+        </div>
+        <Cloud v-else :size="16" />
+        <span class="btn-text">{{ authStore.isLoggedIn ? userName : 'Cloud Sync' }}</span>
+      </button>
+
       <button class="btn btn-secondary" @click="$emit('open-export-import', 'import')" title="Import Questions from CSV or JSON file">
         <Upload :size="16" />
-        Import CSV
+        <span class="btn-text">Import</span>
       </button>
+
       <button class="btn btn-secondary" @click="$emit('open-export-import', 'export')" title="Export Backup or CSV">
         <Download :size="16" />
-        Export
+        <span class="btn-text">Export</span>
       </button>
+
       <button class="btn btn-primary" @click="$emit('add-topic')">
         <Plus :size="16" />
-        Add Topic
+        <span class="btn-text">Add Topic</span>
       </button>
     </div>
   </header>
@@ -44,18 +68,40 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { Plus, Sun, Moon, Upload, Download, Flame } from 'lucide-vue-next'
+import { Plus, Sun, Moon, Upload, Download, Flame, Users, Cloud } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
+import { useAuthStore } from '../stores/authStore'
 import type { Theme } from '../types'
 
 defineEmits<{
   (e: 'add-topic'): void
   (e: 'open-export-import', tab?: 'export' | 'import'): void
+  (e: 'open-auth'): void
+  (e: 'open-social'): void
 }>()
 
 const store = useQuestionStore()
+const authStore = useAuthStore()
+
 const progress = computed(() => store.overallProgress)
 const streakInfo = computed(() => store.streakInfo)
+const friendsCount = computed(() => authStore.friends.length)
+
+const userName = computed(() => {
+  if (authStore.profile?.display_name) return authStore.profile.display_name
+  if (authStore.user?.user_metadata?.full_name) return authStore.user.user_metadata.full_name
+  if (authStore.user?.email) return authStore.user.email.split('@')[0]
+  return 'Profile'
+})
+
+const userInitial = computed(() => {
+  return userName.value.charAt(0).toUpperCase()
+})
+
+const userAvatar = computed(() => {
+  return authStore.profile?.avatar_url || authStore.user?.user_metadata?.avatar_url || ''
+})
+
 const progressPercentage = computed<number>(() => 
   progress.value.total > 0 
     ? Math.round((progress.value.solved / progress.value.total) * 100) 
@@ -76,16 +122,11 @@ watch(() => store.theme, (newTheme) => {
 
 onMounted(() => {
   applyTheme(store.theme)
+  authStore.initAuth()
 })
 </script>
 
 <style scoped>
-.logo {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
-}
-
 .theme-toggle {
   padding: 8px;
   border-radius: 8px;
@@ -94,5 +135,62 @@ onMounted(() => {
 
 .theme-toggle:hover {
   background: rgba(240, 192, 0, 0.15);
+}
+
+.friends-btn {
+  position: relative;
+}
+
+.friends-pill {
+  background: var(--accent-cyan);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  margin-left: 2px;
+}
+
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-auth-active {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: var(--accent-emerald);
+}
+
+.btn-auth-active:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: var(--accent-emerald);
+}
+
+.user-avatar-mini {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-mini-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 768px) {
+  .btn-text {
+    display: none;
+  }
 }
 </style>

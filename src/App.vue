@@ -4,6 +4,8 @@
     <HeaderBar
       @add-topic="showTopicModal = true"
       @open-export-import="openExportImport"
+      @open-auth="showAuthModal = true"
+      @open-social="showSocialModal = true"
     />
 
     <!-- Streak & Activity Heatmap -->
@@ -98,6 +100,16 @@
       @close="deleteTarget = null"
       @confirm="confirmDelete"
     />
+
+    <AuthModal
+      v-if="showAuthModal"
+      @close="showAuthModal = false"
+    />
+
+    <SocialModal
+      v-if="showSocialModal"
+      @close="showSocialModal = false"
+    />
   </div>
 </template>
 
@@ -118,6 +130,8 @@ import NotesModal from './components/NotesModal.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
 import ExportImportModal from './components/ExportImportModal.vue'
 import ActivityHeatmap from './components/ActivityHeatmap.vue'
+import AuthModal from './components/AuthModal.vue'
+import SocialModal from './components/SocialModal.vue'
 
 interface DeleteTarget {
   type: 'topic' | 'subtopic' | 'question'
@@ -133,6 +147,9 @@ const handleFilterDueReview = () => {
 
 const showExportImportModal = ref(false)
 const exportImportTab = ref<'export' | 'import'>('import')
+
+const showAuthModal = ref(false)
+const showSocialModal = ref(false)
 
 const openExportImport = (tab: 'export' | 'import' = 'import') => {
   exportImportTab.value = tab

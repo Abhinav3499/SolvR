@@ -47,9 +47,9 @@ describe('HeaderBar.vue', () => {
     expect(store.theme).toBe('light')
   })
 
-  it('emits open-export-import with import when Import CSV button is clicked', async () => {
+  it('emits open-export-import with import when Import button is clicked', async () => {
     const wrapper = mount(HeaderBar)
-    const importBtn = wrapper.findAll('button').find(b => b.text().includes('Import CSV'))
+    const importBtn = wrapper.findAll('button').find(b => b.text().includes('Import'))
     expect(importBtn).toBeDefined()
     await importBtn?.trigger('click')
 
@@ -63,5 +63,23 @@ describe('HeaderBar.vue', () => {
     await exportBtn?.trigger('click')
 
     expect(wrapper.emitted('open-export-import')?.[0]).toEqual(['export'])
+  })
+
+  it('emits open-social when Friends button is clicked', async () => {
+    const wrapper = mount(HeaderBar)
+    const friendsBtn = wrapper.find('.friends-btn')
+    expect(friendsBtn.exists()).toBe(true)
+    await friendsBtn.trigger('click')
+
+    expect(wrapper.emitted('open-social')).toBeTruthy()
+  })
+
+  it('emits open-auth when Cloud Sync button is clicked', async () => {
+    const wrapper = mount(HeaderBar)
+    const authBtn = wrapper.find('.auth-btn')
+    expect(authBtn.exists()).toBe(true)
+    await authBtn.trigger('click')
+
+    expect(wrapper.emitted('open-auth')).toBeTruthy()
   })
 })
