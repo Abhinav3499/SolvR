@@ -40,6 +40,34 @@
       <option value="revision">Revision</option>
       <option value="due">Due for Review (7+ days)</option>
     </select>
+    <select 
+      class="filter-select"
+      :value="store.filterCompany"
+      title="Filter by Target Company"
+      @change="handleCompanyChange"
+    >
+      <option value="">All Companies</option>
+      <option value="Google">Google</option>
+      <option value="Meta">Meta</option>
+      <option value="Amazon">Amazon</option>
+      <option value="Microsoft">Microsoft</option>
+      <option value="Apple">Apple</option>
+      <option value="Uber">Uber</option>
+      <option value="Netflix">Netflix</option>
+    </select>
+    <select 
+      class="filter-select"
+      :value="store.filterPlatform"
+      title="Filter by Platform"
+      @change="handlePlatformChange"
+    >
+      <option value="">All Platforms</option>
+      <option value="LeetCode">LeetCode</option>
+      <option value="Codeforces">Codeforces</option>
+      <option value="HackerRank">HackerRank</option>
+      <option value="GeeksforGeeks">GeeksforGeeks</option>
+      <option value="CodeChef">CodeChef</option>
+    </select>
   </div>
 </template>
 
@@ -53,6 +81,16 @@ const store = useQuestionStore()
 const handleSearchInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   store.setSearchQuery(target.value)
+}
+
+const handleCompanyChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  store.setFilterCompany(target.value)
+}
+
+const handlePlatformChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  store.setFilterPlatform(target.value)
 }
 
 const handleDifficultyChange = (event: Event) => {

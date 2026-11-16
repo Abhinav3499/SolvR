@@ -35,6 +35,21 @@ describe('SearchFilter.vue', () => {
     expect(store.filterStatus).toBe('due')
   })
 
+  it('updates company and platform filters in the store when changed', async () => {
+    const store = useQuestionStore()
+    const wrapper = mount(SearchFilter)
+
+    const selects = wrapper.findAll('select')
+    const companySelect = selects[2]
+    const platformSelect = selects[3]
+
+    await companySelect.setValue('Google')
+    expect(store.filterCompany).toBe('Google')
+
+    await platformSelect.setValue('LeetCode')
+    expect(store.filterPlatform).toBe('LeetCode')
+  })
+
   it('updates search query in the store when input changes', async () => {
     const store = useQuestionStore()
     const wrapper = mount(SearchFilter)

@@ -74,6 +74,51 @@
         </div>
       </div>
 
+      <!-- Extension & Spaced Repetition Panel -->
+      <div class="sync-panel glass-panel">
+        <div class="sync-panel-header">
+          <div class="sync-panel-title">
+            <Laptop :size="18" class="database-icon" />
+            <div>
+              <h4>Extension & Reminder Settings</h4>
+              <p class="sync-subtitle">Pair Manifest V3 extension & configure revision alerts</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sync-actions" style="flex-direction: column; align-items: stretch; gap: 12px; margin-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #fff;">1-Click Extension Pairing</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Direct problem ingestion without tab redirects</div>
+            </div>
+            <button
+              class="btn btn-secondary"
+              style="font-size: 12px;"
+              :disabled="isPairing"
+              @click="handlePairExtension"
+            >
+              <CheckCircle2 v-if="pairingSuccess" :size="14" style="color: #10b981;" />
+              <Laptop v-else :size="14" />
+              {{ pairingSuccess ? 'Paired!' : isPairing ? 'Pairing...' : 'Pair Extension' }}
+            </button>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #fff;">7-Day Revision Emails</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Automated spaced repetition email digests</div>
+            </div>
+            <input
+              type="checkbox"
+              v-model="emailRemindersEnabled"
+              style="width: 18px; height: 18px; accent-color: var(--accent-cyan); cursor: pointer;"
+              @change="handleReminderToggle"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- Account Actions -->
       <div class="account-actions">
         <button class="btn btn-secondary danger-action" @click="handleSignOut">
@@ -181,7 +226,8 @@ import {
   Database,
   Flame,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Laptop
 } from 'lucide-vue-next'
 import BaseModal from './BaseModal.vue'
 import { useAuthStore } from '../stores/authStore'
@@ -196,6 +242,44 @@ const questionStore = useQuestionStore()
 
 const isSyncing = ref(false)
 const lastSyncTime = ref<string | null>(null)
+const isPairing = ref(false)
+const pairingSuccess = ref(false)
+const emailRemindersEnabled = ref(true)
+
+const handlePairExtension = () => {
+  const chromeRuntime = typeof window !== 'undefined'
+    ? (window as unknown as { chrome?: { runtime?: { sendMessage?: (...args: unknown[]) => void } } }).chrome?.runtime
+    : undefined
+
+  if (!chromeRuntime?.sendMessage) {
+    alert('Browser extension runtime not detected. Ensure the SolvR extension is loaded in your Chromium browser.')
+    return
+  }
+
+  isPairing.value = true
+  try {
+    chromeRuntime.sendMessage(
+      {
+        type: 'AUTH_HANDSHAKE',
+        user: authStore.user,
+        profile: authStore.profile
+      },
+      () => {
+        isPairing.value = false
+        pairingSuccess.value = true
+        setTimeout(() => { pairingSuccess.value = false }, 3000)
+      }
+    )
+  } catch {
+    isPairing.value = false
+  }
+}
+
+const handleReminderToggle = () => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('solvr_email_reminders', emailRemindersEnabled.value ? 'true' : 'false')
+  }
+}
 
 const userName = computed(() => {
   if (authStore.profile?.display_name) return authStore.profile.display_name

@@ -28,7 +28,9 @@ export const useQuestionStore = defineStore('questions', {
         theme: useLocalStorage<Theme>('qs-theme', 'dark'),
         searchQuery: '' as string,
         filterDifficulty: '' as FilterDifficulty,
-        filterStatus: '' as FilterStatus
+        filterStatus: '' as FilterStatus,
+        filterCompany: '' as string,
+        filterPlatform: '' as string
     }),
 
     getters: {
@@ -74,6 +76,19 @@ export const useQuestionStore = defineStore('questions', {
 
             if (state.filterDifficulty) {
                 filtered = filtered.filter(q => q.difficulty === state.filterDifficulty)
+            }
+
+            if (state.filterCompany) {
+                const comp = state.filterCompany.toLowerCase()
+                filtered = filtered.filter(q => q.tags.some(t => t.toLowerCase() === comp))
+            }
+
+            if (state.filterPlatform) {
+                const plat = state.filterPlatform.toLowerCase()
+                filtered = filtered.filter(q =>
+                    (q.tags.some(t => t.toLowerCase() === plat)) ||
+                    (q.link && q.link.toLowerCase().includes(plat))
+                )
             }
 
             if (state.filterStatus === 'solved') {
@@ -271,6 +286,14 @@ export const useQuestionStore = defineStore('questions', {
 
         setFilterStatus(status: FilterStatus) {
             this.filterStatus = status
+        },
+
+        setFilterCompany(company: string) {
+            this.filterCompany = company
+        },
+
+        setFilterPlatform(platform: string) {
+            this.filterPlatform = platform
         },
 
         resetData() {

@@ -6,6 +6,7 @@
       @open-auth="showAuthModal = true"
       @open-social="showSocialModal = true"
       @open-quick-add="showQuickProblemModal = true"
+      @open-share="showShareModal = true"
     />
 
     <!-- LeetCode 1-Year Streak & Activity Heatmap -->
@@ -113,6 +114,15 @@
       v-if="showSocialModal"
       @close="showSocialModal = false"
     />
+
+    <ShareModal
+      v-if="showShareModal"
+      @close="showShareModal = false"
+    />
+
+    <SharedSheetModal />
+
+    <NotificationDrawer />
   </div>
 </template>
 
@@ -135,6 +145,11 @@ import ActivityHeatmap from './components/ActivityHeatmap.vue'
 import AuthModal from './components/AuthModal.vue'
 import SocialModal from './components/SocialModal.vue'
 import QuickProblemModal from './components/QuickProblemModal.vue'
+import ShareModal from './components/ShareModal.vue'
+import SharedSheetModal from './components/SharedSheetModal.vue'
+import NotificationDrawer from './components/NotificationDrawer.vue'
+import { useSharedSheetStore } from './stores/sharedSheetStore'
+import { parseShareLink } from './utils/shareUrl'
 
 interface DeleteTarget {
   type: 'topic' | 'subtopic' | 'question'
@@ -143,6 +158,7 @@ interface DeleteTarget {
 }
 
 const store = useQuestionStore()
+const sharedSheetStore = useSharedSheetStore()
 
 const handleFilterDueReview = () => {
   store.setFilterStatus('due')
@@ -150,6 +166,7 @@ const handleFilterDueReview = () => {
 
 const showAuthModal = ref(false)
 const showSocialModal = ref(false)
+const showShareModal = ref(false)
 const showQuickProblemModal = ref(false)
 const quickProblemData = ref<{
   url?: string
@@ -177,7 +194,13 @@ const deleteTarget = ref<DeleteTarget | null>(null)
 
 const filteredQuestionIds = computed<Set<string> | null>(() => {
   const filtered = store.filteredQuestions
-  if (!store.searchQuery && !store.filterDifficulty && !store.filterStatus) {
+  if (
+    !store.searchQuery &&
+    !store.filterDifficulty &&
+    !store.filterStatus &&
+    !store.filterCompany &&
+    !store.filterPlatform
+  ) {
     return null
   }
   return new Set(filtered.map(q => q.id))
@@ -290,6 +313,13 @@ onMounted(() => {
       showQuickProblemModal.value = true
       const cleanUrl = window.location.origin + window.location.pathname
       window.history.replaceState({}, document.title, cleanUrl)
+    }
+
+    if (window.location.hash) {
+      const parsed = parseShareLink(window.location.hash)
+      if (parsed) {
+        sharedSheetStore.openPreview(parsed)
+      }
     }
   }
 })

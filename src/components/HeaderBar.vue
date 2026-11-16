@@ -28,6 +28,16 @@
         <Moon v-else :size="18" />
       </button>
 
+      <button class="btn btn-icon notif-btn" @click="notificationStore.toggleDrawer" title="Notifications & Reminders">
+        <Bell :size="18" />
+        <span v-if="unreadNotifs > 0" class="notif-badge">{{ unreadNotifs }}</span>
+      </button>
+
+      <button class="btn btn-secondary share-btn" @click="$emit('open-share')" title="Share practice sheet snapshot">
+        <Share2 :size="16" />
+        <span class="btn-text">Share Sheet</span>
+      </button>
+
       <button class="btn btn-secondary friends-btn" @click="$emit('open-social')" title="Coding partners & leaderboard">
         <Users :size="16" />
         <span class="btn-text">Friends</span>
@@ -63,9 +73,10 @@
 
 <script setup lang="ts">
 import { computed, watch, onMounted } from 'vue'
-import { Plus, Sun, Moon, Flame, Users, Cloud, Code2 } from 'lucide-vue-next'
+import { Plus, Sun, Moon, Flame, Users, Cloud, Code2, Bell, Share2 } from 'lucide-vue-next'
 import { useQuestionStore } from '../stores/questionStore'
 import { useAuthStore } from '../stores/authStore'
+import { useNotificationStore } from '../stores/notificationStore'
 import type { Theme } from '../types'
 
 defineEmits<{
@@ -73,14 +84,17 @@ defineEmits<{
   (e: 'open-auth'): void
   (e: 'open-social'): void
   (e: 'open-quick-add'): void
+  (e: 'open-share'): void
 }>()
 
 const store = useQuestionStore()
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
 
 const progress = computed(() => store.overallProgress)
 const streakInfo = computed(() => store.streakInfo)
 const friendsCount = computed(() => authStore.friends.length)
+const unreadNotifs = computed(() => notificationStore.unreadCount)
 
 const userName = computed(() => {
   if (authStore.profile?.display_name) return authStore.profile.display_name
@@ -130,6 +144,42 @@ onMounted(() => {
 
 .theme-toggle:hover {
   background: rgba(240, 192, 0, 0.15);
+}
+
+.notif-btn {
+  position: relative;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.notif-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #f43f5e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 1px 5px;
+  line-height: 1;
+}
+
+.share-btn {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: #c084fc;
+}
+
+.share-btn:hover {
+  background: rgba(139, 92, 246, 0.22);
+  border-color: #c084fc;
 }
 
 .friends-btn {
