@@ -1,13 +1,24 @@
 {
   "manifest_version": 3,
   "name": "SolvR - LeetCode & Codeforces Problem Importer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "1-click add any LeetCode, Codeforces, GeeksforGeeks, or HackerRank problem to your SolvR question sheet.",
   "action": {
     "default_popup": "popup.html",
     "default_title": "Add current problem to SolvR"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
+    {
+      "matches": [
+        "*://*.leetcode.com/problems/*"
+      ],
+      "js": ["mainWorldInterceptor.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
     {
       "matches": [
         "*://*.leetcode.com/problems/*",
@@ -23,5 +34,15 @@
   "permissions": [
     "activeTab",
     "storage"
-  ]
+  ],
+  "host_permissions": [
+    "*://*.leetcode.com/*",
+    "*://*.codeforces.com/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://*.vercel.app/*",
+      "http://localhost:*/*"
+    ]
+  }
 }
