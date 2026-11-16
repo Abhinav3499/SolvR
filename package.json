@@ -3,9 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build",
+    "build:shared": "npm --workspace=@solvr/shared run build",
+    "build": "npm --workspace=@solvr/shared run build && vue-tsc -b && vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc -b",
     "lint": "eslint .",
@@ -15,9 +19,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@solvr/shared": "*",
     "@supabase/supabase-js": "^2.119.0",
     "@vueuse/core": "^14.2.0",
     "lucide-vue-next": "^0.563.0",
+    "lz-string": "^1.5.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.24",
     "vuedraggable": "^4.1.0"
