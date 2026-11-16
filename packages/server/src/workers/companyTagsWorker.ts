@@ -132,10 +132,12 @@ export async function syncCompanyTags(options?: {
       syncedCount: rows.length,
       message: `Successfully synchronized ${rows.length} company tags.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : 'Unknown error occurred during tag synchronization';
     return {
       status: 'failed',
-      message: err.message || 'Unknown error occurred during tag synchronization',
+      message,
     };
   }
 }

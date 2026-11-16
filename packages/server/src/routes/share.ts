@@ -10,7 +10,7 @@ interface ShareRequestBody {
 
 export const shareRoutes: FastifyPluginAsync = async (fastify) => {
   // In-memory fallback map if running offline/without database
-  const localSheetsMap = new Map<string, { title: string; payload: any; views: number }>();
+  const localSheetsMap = new Map<string, { title: string; payload: unknown; views: number }>();
 
   // POST /api/share - Stores large sheet payload (>2 KB) and returns shortId
   fastify.post<{ Body: ShareRequestBody }>('/api/share', async (request, reply) => {
@@ -47,8 +47,9 @@ export const shareRoutes: FastifyPluginAsync = async (fastify) => {
         shortId,
         shareUrl: `/share/${shortId}`,
       });
-    } catch (err: any) {
-      return reply.status(500).send({ error: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   });
 
@@ -89,8 +90,9 @@ export const shareRoutes: FastifyPluginAsync = async (fastify) => {
         viewCount: data.view_count,
         createdAt: data.created_at,
       });
-    } catch (err: any) {
-      return reply.status(500).send({ error: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   });
 };

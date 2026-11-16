@@ -22,7 +22,7 @@ export async function connectRedis(): Promise<boolean> {
   try {
     await redisConnection.connect();
     return true;
-  } catch (err) {
+  } catch {
     if (config.nodeEnv !== 'test') {
       console.warn('[Redis] Continuing without active Redis daemon (offline fallback active).');
     }

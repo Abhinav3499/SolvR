@@ -41,7 +41,7 @@ export async function authenticateSupabaseUser(
       id: user.id,
       email: user.email,
     };
-  } catch (err) {
+  } catch {
     reply.status(401).send({ error: 'Authentication verification failed' });
   }
 }

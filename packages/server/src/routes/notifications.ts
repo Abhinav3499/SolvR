@@ -30,8 +30,9 @@ export const notificationsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         return reply.send({ notifications: data || [] });
-      } catch (err: any) {
-        return reply.status(500).send({ error: err.message });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        return reply.status(500).send({ error: message });
       }
     }
   );
@@ -64,8 +65,9 @@ export const notificationsRoutes: FastifyPluginAsync = async (fastify) => {
         }
 
         return reply.send({ success: true });
-      } catch (err: any) {
-        return reply.status(500).send({ error: err.message });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        return reply.status(500).send({ error: message });
       }
     }
   );

@@ -9,6 +9,10 @@
   "scripts": {
     "dev": "vite",
     "build:shared": "npm --workspace=@solvr/shared run build",
+    "build:server": "npm --workspace=@solvr/server run build",
+    "server:dev": "npm --workspace=@solvr/server run dev",
+    "server:start": "npm --workspace=@solvr/server run start",
+    "worker:tags:once": "npm --workspace=@solvr/server run worker:tags:once",
     "build": "npm --workspace=@solvr/shared run build && vue-tsc -b && vite build",
     "preview": "vite preview",
     "type-check": "vue-tsc -b",

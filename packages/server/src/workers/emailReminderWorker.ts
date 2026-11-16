@@ -173,13 +173,14 @@ export async function processSpacedRepetitionReminders(options?: {
       emailsDispatched,
       notificationsCreated,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error occurred';
     return {
       status: 'failed',
       usersProcessed: 0,
       emailsDispatched,
       notificationsCreated,
-      message: err.message,
+      message,
     };
   }
 }

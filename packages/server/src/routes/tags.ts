@@ -25,10 +25,13 @@ export const tagsRoutes: FastifyPluginAsync = async (fastify) => {
         return reply.status(500).send({ error: 'Failed to fetch company tags' });
       }
 
-      const counts = data.reduce((acc: Record<string, number>, row: any) => {
-        acc[row.company_name] = (acc[row.company_name] || 0) + 1;
-        return acc;
-      }, {});
+      const counts = (data as Array<{ company_name: string }>).reduce(
+        (acc: Record<string, number>, row) => {
+          acc[row.company_name] = (acc[row.company_name] || 0) + 1;
+          return acc;
+        },
+        {}
+      );
 
       const companies = Object.entries(counts).map(([name, count]) => ({
         company: name,
@@ -36,8 +39,9 @@ export const tagsRoutes: FastifyPluginAsync = async (fastify) => {
       }));
 
       return reply.send({ companies });
-    } catch (err: any) {
-      return reply.status(500).send({ error: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   });
 
@@ -64,8 +68,9 @@ export const tagsRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return reply.send({ company: companyName, problems: data });
-    } catch (err: any) {
-      return reply.status(500).send({ error: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      return reply.status(500).send({ error: message });
     }
   });
 };

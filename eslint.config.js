@@ -25,7 +25,7 @@ export default ts.config(
     }
   },
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', '.vercel/**']
+    ignores: ['**/dist/**', '**/coverage/**', 'node_modules/**', '.vercel/**']
   },
   {
     rules: {

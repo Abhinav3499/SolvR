@@ -58,9 +58,12 @@ export async function initializeQueuesAndWorkers(): Promise<void> {
     if (config.nodeEnv !== 'test') {
       console.log('[Queue] BullMQ queues and worker schedules initialized.');
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (config.nodeEnv !== 'test') {
-      console.warn('[Queue] Skipped BullMQ daemon activation (offline/local mode):', err.message);
+      console.warn(
+        '[Queue] Skipped BullMQ daemon activation (offline/local mode):',
+        err instanceof Error ? err.message : String(err)
+      );
     }
   }
 }
